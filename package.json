@@ -33,17 +33,17 @@
     "typescript": "^3.8.3"
   },
   "devDependencies": {
-    "@babel/polyfill": "^7.8.7",
-    "@types/koa": "^2.11.2",
-    "@types/koa-logger": "^3.1.1",
-    "@types/koa-router": "^7.4.0",
-    "@typescript-eslint/eslint-plugin": "^2.25.0",
-    "@typescript-eslint/parser": "^2.25.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2",
-    "jest": "^25.1.0",
-    "nodemon": "^2.0.2",
-    "prettier": "^2.0.2"
+    "@babel/polyfill": "7.8.7",
+    "@types/koa": "2.11.2",
+    "@types/koa-logger": "3.1.1",
+    "@types/koa-router": "7.4.0",
+    "@typescript-eslint/eslint-plugin": "2.25.0",
+    "@typescript-eslint/parser": "2.25.0",
+    "eslint": "6.8.0",
+    "eslint-config-prettier": "6.10.1",
+    "eslint-plugin-prettier": "3.1.2",
+    "jest": "25.1.0",
+    "nodemon": "2.0.2",
+    "prettier": "2.0.2"
   }
 }
