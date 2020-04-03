@@ -1,19 +1,18 @@
-import Router from 'koa-router';
+import * as koaJoiRouter from 'koa-joi-router';
 
 export abstract class BaseController {
-    private _router: Router;
+    private _router: koaJoiRouter.Router;
 
-    public get router(): Router {
+    public get router(): koaJoiRouter.Router {
         return this._router;
     }
 
-    public set router(value: Router) {
+    public set router(value: koaJoiRouter.Router) {
         this._router = value;
     }
 
-    constructor(_prefix: string) {
-        this._router = new Router({
-            prefix: _prefix,
-        });
+    constructor(prefix: string) {
+        this._router = koaJoiRouter.default();
+        this._router.prefix(prefix);
     }
 }
