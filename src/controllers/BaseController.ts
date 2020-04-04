@@ -11,8 +11,8 @@ export abstract class BaseController {
         this._router = value;
     }
 
-    constructor(prefix: string) {
+    constructor() {
         this._router = koaJoiRouter.default();
-        this._router.prefix(prefix);
+        this._router.prefix('/api');
     }
 }
