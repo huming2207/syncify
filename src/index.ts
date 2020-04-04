@@ -1,7 +1,7 @@
 import Koa from 'koa';
-import Router from 'koa-router';
 import logger from 'koa-logger';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+import { UserController } from './controllers/user/UserController';
 
 mongoose.connect('mongodb://localhost:27017/test', {
     useNewUrlParser: true,
@@ -9,9 +9,8 @@ mongoose.connect('mongodb://localhost:27017/test', {
 });
 
 const app = new Koa();
-const router = new Router();
+const userController = new UserController();
 
 app.use(logger());
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(userController.router.middleware());
 app.listen(3000);
