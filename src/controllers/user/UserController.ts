@@ -21,8 +21,6 @@ export class UserController extends BaseController {
             },
             this.createUser,
         );
-
-        console.log((this.router as any)['router']);
     }
 
     private createUser = async (ctx: Context, next: Next): Promise<void> => {
