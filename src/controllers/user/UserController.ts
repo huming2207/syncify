@@ -1,7 +1,7 @@
 import { Context, Next } from 'koa';
 import { BaseController } from '../BaseController';
 import { Joi } from 'koa-joi-router';
-import User from './UserModel';
+import User from '../../models/user/UserModel';
 import argon2 from 'argon2';
 
 export class UserController extends BaseController {
