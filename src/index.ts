@@ -22,7 +22,7 @@ app.use(
     jwt({
         secret: process.env.SYNCIFY_JWT_SECRET ? process.env.SYNCIFY_JWT_SECRET : 'jwtTestSecret',
         algorithms: ['HS512'],
-    }).unless({ path: [/^\/api^\/user^\/register/, /^\/api^\/user^\/login/] }),
+    }).unless({ path: [/^\/api\/user\/register/, /^\/api\/user\/login/] }),
 );
 app.use(userController.router.middleware());
 app.listen(3000);
