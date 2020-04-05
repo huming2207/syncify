@@ -14,8 +14,8 @@ export class UserController extends BaseController {
                 validate: {
                     type: 'form',
                     body: {
-                        username: Joi.string().max(50),
-                        password: Joi.string().max(50),
+                        username: Joi.string().min(2).max(100),
+                        password: Joi.string().min(8).max(50),
                         email: Joi.string().email(),
                     },
                 },
@@ -29,12 +29,25 @@ export class UserController extends BaseController {
                 validate: {
                     type: 'form',
                     body: {
-                        username: Joi.string().max(100),
-                        password: Joi.string().max(50),
+                        username: Joi.string().min(2).max(100),
+                        password: Joi.string().min(8).max(50),
                     },
                 },
             },
             this.login,
+        );
+
+        this.router.post(
+            '/user/password',
+            {
+                validate: {
+                    type: 'form',
+                    body: {
+                        password: Joi.string().min(8).max(50),
+                    },
+                },
+            },
+            this.changePassword,
         );
     }
 
@@ -94,8 +107,8 @@ export class UserController extends BaseController {
         } else {
             const token = jwt.sign(
                 {
-                    username: user.username,
                     id: user.id,
+                    username: user.username,
                     email: user.email,
                 },
                 process.env.SYNCIFY_JWT_SECRET ? process.env.SYNCIFY_JWT_SECRET : 'jwtTestToken',
@@ -105,7 +118,7 @@ export class UserController extends BaseController {
                 },
             );
 
-            ctx.status = 401;
+            ctx.status = 200;
             ctx.type = 'json';
             ctx.body = {
                 msg: 'User logged in sccessfully',
@@ -115,5 +128,49 @@ export class UserController extends BaseController {
             };
             return next();
         }
+    };
+
+    private changePassword = async (ctx: Context, next: Next): Promise<void> => {
+        if (ctx.state.jwtOriginalError || !ctx.state.user) {
+            ctx.status = 401;
+            ctx.type = 'json';
+            ctx.body = { msg: "You haven't logged in!", data: null };
+            return next();
+        }
+
+        const userId = ctx.state.user['id'];
+        if (!userId) {
+            ctx.status = 401;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Invalid or corrupted JWT token', data: null };
+            return next();
+        }
+
+        const body = ctx.request.body;
+        const passwordText = body['password'] as string;
+
+        const user = await User.findByIdAndUpdate(userId, {
+            $set: { password: await argon2.hash(passwordText) },
+        });
+
+        if (user === null) {
+            ctx.status = 500;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Cannot find user', data: null };
+            return next();
+        }
+
+        ctx.status = 200;
+        ctx.type = 'json';
+        ctx.body = {
+            msg: 'Password updated',
+            data: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+            },
+        };
+
+        return next();
     };
 }
