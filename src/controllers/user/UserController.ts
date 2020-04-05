@@ -86,13 +86,13 @@ export class UserController extends BaseController {
             return next();
         }
 
-        if (user === null || argon2.verify(user.password, passwordText)) {
+        if (user === null || !argon2.verify(user.password, passwordText)) {
             ctx.status = 401;
             ctx.type = 'json';
             ctx.body = { msg: 'Username or password is incorrect', data: null };
             return next();
         } else {
-            jwt.sign(
+            const token = jwt.sign(
                 {
                     username: user.username,
                     id: user.id,
@@ -101,8 +101,19 @@ export class UserController extends BaseController {
                 process.env.SYNCIFY_JWT_SECRET ? process.env.SYNCIFY_JWT_SECRET : 'jwtTestToken',
                 {
                     algorithm: 'HS512',
+                    expiresIn: '1h',
                 },
             );
+
+            ctx.status = 401;
+            ctx.type = 'json';
+            ctx.body = {
+                msg: 'User logged in sccessfully',
+                data: {
+                    token: token,
+                },
+            };
+            return next();
         }
     };
 }
