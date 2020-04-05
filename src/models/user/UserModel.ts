@@ -7,9 +7,9 @@ export interface UserDoc extends mongoose.Document {
 }
 
 export const UserSchema = new mongoose.Schema({
-    username: String,
-    password: String,
-    email: String,
+    username: { type: String, unique: true },
+    password: { type: String },
+    email: { type: String, unique: true },
 });
 
 export default mongoose.model<UserDoc>('User', UserSchema);
