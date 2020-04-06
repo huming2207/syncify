@@ -15,6 +15,7 @@
     },
     "typeRoots": [
       "node_modules/@types",
+      "./typings",
       "index.d.ts",
     ],
     "strict": true,
@@ -27,5 +28,5 @@
   },
   "include": [
     "src/**/*"
-  ]
+  ],
 }
