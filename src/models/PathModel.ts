@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { UserDoc } from '../user/UserModel';
+import { UserDoc } from './UserModel';
 import { GridFileInfo } from 'mongoose-gridfs';
 
 export interface PathDoc extends mongoose.Document {

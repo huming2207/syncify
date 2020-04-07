@@ -1,7 +1,7 @@
 import { Context, Next } from 'koa';
-import { BaseController } from '../BaseController';
+import { BaseController } from './BaseController';
 import { Joi } from 'koa-joi-router';
-import User, { UserDoc } from '../../models/user/UserModel';
+import User, { UserDoc } from '../models/UserModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 

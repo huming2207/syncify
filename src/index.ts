@@ -1,7 +1,7 @@
 import Koa from 'koa';
 import logger from 'koa-logger';
 import mongoose from 'mongoose';
-import { UserController } from './controllers/user/UserController';
+import { UserController } from './controllers/UserController';
 import jwt from 'koa-jwt';
 
 require('dotenv').config();

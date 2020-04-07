@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { PathDoc } from '../path/PathModel';
+import { PathDoc } from './PathModel';
 
 export interface UserDoc extends mongoose.Document {
     username: string;
