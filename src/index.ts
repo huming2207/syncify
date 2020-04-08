@@ -6,23 +6,22 @@ import { connectToDb } from './common/Database';
 
 require('dotenv').config();
 
+const app = new Koa();
+const userController = new UserController();
+
+app.use(logger());
+app.use(
+    jwt({
+        secret: process.env.SYNCIFY_JWT_SECRET ? process.env.SYNCIFY_JWT_SECRET : 'jwtTestSecret',
+        algorithms: ['HS512'],
+        passthrough: true,
+    }).unless({ path: [/^\/api\/user\/register/, /^\/api\/user\/login/] }),
+);
+app.use(userController.router.middleware());
+
 connectToDb()
     .then(() => {
-        const app = new Koa();
-        const userController = new UserController();
-
-        app.use(logger());
-        app.use(
-            jwt({
-                secret: process.env.SYNCIFY_JWT_SECRET
-                    ? process.env.SYNCIFY_JWT_SECRET
-                    : 'jwtTestSecret',
-                algorithms: ['HS512'],
-                passthrough: true,
-            }).unless({ path: [/^\/api\/user\/register/, /^\/api\/user\/login/] }),
-        );
-        app.use(userController.router.middleware());
-        app.listen(3000);
+        app.listen(parseInt(process.env.SYNCIFY_PORT ? process.env.SYNCIFY_PORT : '3000'));
     })
     .catch((err) => {
         console.error(`Failed to connect MongoDB: ${err}`);
