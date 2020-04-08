@@ -1,18 +1,18 @@
-import * as mongoose from 'mongoose';
 import { PathDoc } from './PathModel';
+import { Document, Schema, Types, model } from 'mongoose';
 
-export interface UserDoc extends mongoose.Document {
+export interface UserDoc extends Document {
     username: string;
     password: string;
     email: string;
     rootPath: PathDoc;
 }
 
-export const UserSchema = new mongoose.Schema({
+export const UserSchema = new Schema({
     username: { type: String, unique: true },
     password: { type: String },
     email: { type: String, unique: true },
-    rootPath: { type: mongoose.Types.ObjectId, ref: 'Path' },
+    rootPath: { type: Types.ObjectId, ref: 'Path' },
 });
 
-export default mongoose.model<UserDoc>('User', UserSchema);
+export default model<UserDoc>('User', UserSchema);

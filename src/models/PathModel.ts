@@ -1,19 +1,19 @@
-import mongoose from 'mongoose';
 import { UserDoc } from './UserModel';
 import { GridFileInfo } from 'mongoose-gridfs';
+import { Document, Schema, model } from 'mongoose';
 
-export interface PathDoc extends mongoose.Document {
+export interface PathDoc extends Document {
     owner: UserDoc;
     childrenPath: PathDoc[];
     name: string;
     files: GridFileInfo[];
 }
 
-export const PathSchema = new mongoose.Schema({
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    childrenPath: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Path' }],
+export const PathSchema = new Schema({
+    owner: { type: Schema.Types.ObjectId, ref: 'User' },
+    childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
     name: { type: String },
-    files: [{ type: mongoose.Schema.Types.ObjectId, ref: 'fs.files' }],
+    files: [{ type: Schema.Types.ObjectId, ref: 'fs.files' }],
 });
 
-export default mongoose.model<PathDoc>('Path', PathSchema);
+export default model<PathDoc>('Path', PathSchema);
