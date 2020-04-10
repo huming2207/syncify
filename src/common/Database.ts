@@ -8,6 +8,8 @@ export const connectToDb = async (): Promise<void> => {
         {
             useNewUrlParser: true,
             useUnifiedTopology: true,
+            useFindAndModify: false,
+            useCreateIndex: true,
         },
     );
 };
