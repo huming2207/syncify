@@ -62,6 +62,8 @@ export class PathController extends BaseController {
     }
 
     private createDirectory = async (ctx: Context, next: Next): Promise<void> => {
+        const userId = ctx.state.user['id'];
+
         return await next();
     };
 

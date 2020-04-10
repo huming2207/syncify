@@ -131,21 +131,7 @@ export class UserController extends BaseController {
     };
 
     private changePassword = async (ctx: Context, next: Next): Promise<void> => {
-        if (ctx.state.jwtOriginalError || !ctx.state.user) {
-            ctx.status = 401;
-            ctx.type = 'json';
-            ctx.body = { msg: "You haven't logged in!", data: null };
-            return next();
-        }
-
         const userId = ctx.state.user['id'];
-        if (!userId) {
-            ctx.status = 401;
-            ctx.type = 'json';
-            ctx.body = { msg: 'Invalid or corrupted JWT token', data: null };
-            return next();
-        }
-
         const body = ctx.request.body;
         const passwordText = body['password'] as string;
 
