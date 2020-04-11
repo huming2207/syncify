@@ -4,6 +4,7 @@ import { Joi } from 'koa-joi-router';
 import User, { UserDoc } from '../models/UserModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import Path from '../models/PathModel';
 
 export class UserController extends BaseController {
     constructor() {
@@ -63,6 +64,14 @@ export class UserController extends BaseController {
                 password: await argon2.hash(passwordText),
                 email: email,
             });
+
+            const createdPath = await Path.create({
+                owner: createdUser,
+                name: '',
+            });
+
+            createdUser.rootPath = createdPath;
+            await createdUser.save();
 
             ctx.status = 200;
             ctx.type = 'json';
