@@ -43,7 +43,7 @@
     "@types/jest": "25.2.1",
     "@types/joi-password-complexity": "3.1.0",
     "@types/koa-joi-router": "5.2.3",
-    "@types/node": "13.9.3",
+    "@types/node": "13.11.1",
     "@types/async-busboy": "0.7.0",
     "@types/co-body": "0.0.3",
     "@types/jsonwebtoken": "8.3.9",
