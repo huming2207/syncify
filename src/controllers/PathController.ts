@@ -12,7 +12,7 @@ export class PathController extends BaseController {
             {
                 validate: {
                     query: {
-                        path: Joi.string().min(1),
+                        path: Joi.string().regex(/^\//),
                     },
                 },
             },
@@ -25,7 +25,7 @@ export class PathController extends BaseController {
                 validate: {
                     type: 'form',
                     body: {
-                        path: Joi.string().min(1),
+                        path: Joi.string().regex(/^\//),
                     },
                 },
             },
@@ -38,8 +38,8 @@ export class PathController extends BaseController {
                 validate: {
                     type: 'form',
                     body: {
-                        oldPath: Joi.string().min(1),
-                        newPath: Joi.string().min(1),
+                        oldPath: Joi.string().regex(/^\//),
+                        newPath: Joi.string().regex(/^\//),
                         move: Joi.boolean(),
                     },
                 },
@@ -53,7 +53,7 @@ export class PathController extends BaseController {
                 validate: {
                     type: 'form',
                     body: {
-                        path: Joi.string().min(1),
+                        path: Joi.string().regex(/^\//),
                     },
                 },
             },
@@ -110,6 +110,20 @@ export class PathController extends BaseController {
     };
 
     private listDirectory = async (ctx: Context, next: Next): Promise<void> => {
+        const userId = ctx.state.user['id'];
+        const user = await User.findById(userId).populate({
+            path: 'rootPath',
+        });
+
+        if (user === null) {
+            ctx.status = 500;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Cannot find user', data: null };
+            return next();
+        }
+
+        const path = ctx.request.query['path'] as string;
+
         return next();
     };
 
