@@ -11,8 +11,7 @@ export class PathController extends BaseController {
             '/path',
             {
                 validate: {
-                    type: 'form',
-                    body: {
+                    query: {
                         path: Joi.string().min(1),
                     },
                 },
