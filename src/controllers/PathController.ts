@@ -123,7 +123,44 @@ export class PathController extends BaseController {
         }
 
         const path = ctx.request.query['path'] as string;
+        const pathArr = path.split('/').splice(1);
 
+        // Do a BFS here to iterate a path tree.
+        // If a path name is matched, continue; otherwise, return 404.
+        let parentPath = user.rootPath;
+        for (const pathItem of pathArr) {
+            const childPath = parentPath.childrenPath.filter(
+                (element) => element.name === pathItem,
+            );
+
+            if (childPath.length < 1) {
+                ctx.status = 404;
+                ctx.type = 'json';
+                ctx.body = { msg: 'Directory does not exist', data: pathArr };
+                return next();
+            } else {
+                parentPath = childPath[0];
+            }
+        }
+
+        await parentPath.populate('owner').execPopulate();
+
+        ctx.status = 200;
+        ctx.type = 'json';
+        ctx.body = {
+            msg: '',
+            data: {
+                id: parentPath.id,
+                owner: {
+                    name: parentPath.owner.username,
+                    email: parentPath.owner.email,
+                    id: parentPath.owner._id,
+                },
+                files: parentPath.files,
+                name: parentPath.name,
+                dirs: parentPath.childrenPath,
+            },
+        };
         return next();
     };
 
