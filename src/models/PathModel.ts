@@ -1,12 +1,12 @@
 import { UserDoc } from './UserModel';
-import { GridFileInfo } from 'mongoose-gridfs';
 import { Document, Schema, model, HookNextFunction } from 'mongoose';
+import { FileDoc } from './FileModel';
 
 export interface PathDoc extends Document {
     owner: UserDoc;
     childrenPath: PathDoc[];
     name: string;
-    files: GridFileInfo[];
+    files: FileDoc[];
 }
 
 export const PathSchema = new Schema({
