@@ -121,7 +121,7 @@ export class PathController extends BaseController {
             }
         }
 
-        await parentPath.populate('owner').execPopulate();
+        await parentPath.populate('owner').populate('files').execPopulate();
 
         ctx.status = 200;
         ctx.type = 'json';
