@@ -45,8 +45,14 @@ export class FileController extends BaseController {
         // Do a BFS here to iterate a path tree.
         // If a path name is matched, continue; otherwise, return 404.
         let currPath = user.rootPath;
-        for (const pathItem of pathArr) {
+        let fileName = '';
+        for (const [idx, pathItem] of pathArr.entries()) {
             const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
+            if (idx === pathArr.length - 1) {
+                fileName = pathItem;
+                break;
+            }
+
             if (childPath.length < 1) {
                 ctx.status = 404;
                 ctx.type = 'json';
@@ -56,6 +62,23 @@ export class FileController extends BaseController {
                 currPath = childPath[0];
             }
         }
+
+        // Load files from the directory it should be in
+        await currPath.populate('files').execPopulate();
+
+        // Load file
+        const files = currPath.files.filter((element) => element.name === fileName);
+        if (files.length < 1) {
+            ctx.status = 404;
+            ctx.type = 'json';
+            ctx.body = { msg: 'File does not exist', data: pathArr };
+            return next();
+        }
+
+        // Stream the file
+        ctx.status = 200;
+        ctx.response.attachment(fileName);
+        ctx.body = bucket.openDownloadStream(files[0].gridFile);
 
         return next();
     };
@@ -108,6 +131,7 @@ export class FileController extends BaseController {
                 size: parts.field['size'],
                 hash: parts.field['hash'],
                 type: parts.field['type'],
+                name: parts.field['name'],
                 owner: user._id,
                 path: currPath._id,
                 gridFile: oid,
