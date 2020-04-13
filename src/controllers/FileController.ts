@@ -3,7 +3,7 @@ import { Joi } from 'koa-joi-router';
 import { Next, Context } from 'koa';
 import mongodb from 'mongodb';
 import mongoose from 'mongoose';
-import { FileMetadata, FileDoc } from '../models/FileModel';
+import File from '../models/FileModel';
 import { UserDoc } from '../models/UserModel';
 import Path from '../models/PathModel';
 
@@ -73,21 +73,17 @@ export class FileController extends BaseController {
 
         const db = mongoose.connection.db;
         const bucket = new mongodb.GridFSBucket(db);
-        const metadata: FileMetadata = {
-            hash: parts.field['hash'],
-            type: parts.field['type'],
-            owner: user._id, // User ID from JWT
-        };
 
         const oid = new mongodb.ObjectId();
-        const uploadStream = bucket.openUploadStreamWithId(oid, parts.field['name'], {
-            metadata: metadata,
-        });
+        const uploadStream = bucket.openUploadStreamWithId(oid, parts.field['name']);
 
         uploadStream.on('finish', async () => {
             bucket.rename(oid, parts.field['name']);
             const path = ctx.request.query['path'] as string;
-            const pathArr = path.split('/').splice(1);
+            let pathArr = [''];
+            if (path.startsWith('/')) {
+                pathArr = path.split('/').splice(1);
+            }
 
             // Do a BFS here to iterate a path tree.
             // If a path name is matched, continue; otherwise, return 404.
@@ -107,7 +103,18 @@ export class FileController extends BaseController {
                 }
             }
 
-            await Path.updateOne({ _id: currPath._id }, { $push: { files: oid } });
+            // Create file index
+            const file = await File.create({
+                size: parts.field['size'],
+                hash: parts.field['hash'],
+                type: parts.field['type'],
+                owner: user._id,
+                path: currPath._id,
+                gridFile: oid,
+            });
+
+            // Also add file index object to path
+            await Path.updateOne({ _id: currPath._id }, { $push: { files: file._id } });
         });
 
         uploadStream.on('error', () => {

@@ -1,4 +1,6 @@
-import { Types, Document } from 'mongoose';
+import { Types, Document, Schema, model } from 'mongoose';
+import { UserDoc } from './UserModel';
+import { PathDoc } from './PathModel';
 
 export interface FileMetadata {
     hash: string;
@@ -7,9 +9,21 @@ export interface FileMetadata {
 }
 
 export interface FileDoc extends Document {
-    length: number;
-    chunkSize: number;
-    uploadDate: Date;
-    md5: string;
-    filename: string;
+    size: number;
+    hash: string;
+    type: string;
+    owner: UserDoc;
+    path: PathDoc;
+    gridFile: Types.ObjectId;
 }
+
+export const FileSchema = new Schema({
+    size: { type: Number },
+    hash: { type: String },
+    type: { type: String },
+    owner: { type: Types.ObjectId, ref: 'User' },
+    path: { type: Types.ObjectId, ref: 'Path' },
+    gridFile: { type: Types.ObjectId },
+});
+
+export default model<FileDoc>('File', FileSchema);
