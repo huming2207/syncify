@@ -5,12 +5,14 @@ import jwt from 'koa-jwt';
 import { connectToDb } from './common/Database';
 import { UnauthorisedHandler } from './controllers/BaseController';
 import { PathController } from './controllers/PathController';
+import { FileController } from './controllers/FileController';
 
 require('dotenv').config();
 
 const app = new Koa();
 const userController = new UserController();
 const pathController = new PathController();
+const fileController = new FileController();
 
 app.use(logger());
 app.use(UnauthorisedHandler);
@@ -24,6 +26,7 @@ app.use(
 );
 app.use(userController.router.middleware());
 app.use(pathController.router.middleware());
+app.use(fileController.router.middleware());
 
 connectToDb()
     .then(() => {
