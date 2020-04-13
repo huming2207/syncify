@@ -1,10 +1,8 @@
 import { BaseController } from './BaseController';
 import { Joi } from 'koa-joi-router';
 import { Next, Context } from 'koa';
-import { createModel } from 'mongoose-gridfs';
 import mongodb from 'mongodb';
 import mongoose from 'mongoose';
-import User from '../models/UserModel';
 import { FileMetadata } from '../models/MetadataModel';
 
 export class FileController extends BaseController {
@@ -35,14 +33,17 @@ export class FileController extends BaseController {
     }
 
     private getFile = async (ctx: Context, next: Next): Promise<void> => {
+        const body = ctx.request.body;
+
+        const db = mongoose.connection.db;
+        const bucket = new mongodb.GridFSBucket(db);
+
         return next();
     };
 
     private uploadFile = async (ctx: Context, next: Next): Promise<void> => {
         const req = ctx.request as any;
         const parts = req['parts'];
-        console.log(parts);
-        console.log(parts.field);
         if (parts === undefined || parts.field == undefined) {
             ctx.status = 400;
             ctx.type = 'json';
@@ -89,8 +90,6 @@ export class FileController extends BaseController {
             ctx.body = { msg: 'Failed to upload the file', data: err };
             return next();
         }
-
-        console.log(parts.field);
 
         ctx.status = 200;
         ctx.type = 'json';
