@@ -1,7 +1,7 @@
 import { BaseController } from './BaseController';
 import { Context, Next } from 'koa';
 import { Joi } from 'koa-joi-router';
-import User from '../models/UserModel';
+import User, { UserDoc } from '../models/UserModel';
 import Path from '../models/PathModel';
 
 export class PathController extends BaseController {
@@ -62,18 +62,7 @@ export class PathController extends BaseController {
     }
 
     private createDirectory = async (ctx: Context, next: Next): Promise<void> => {
-        const userId = ctx.state.user['id'];
-        const user = await User.findById(userId).populate({
-            path: 'rootPath',
-        });
-
-        if (user === null) {
-            ctx.status = 500;
-            ctx.type = 'json';
-            ctx.body = { msg: 'Cannot find user', data: null };
-            return next();
-        }
-
+        const user = ctx.state.user['obj'] as UserDoc;
         const body = ctx.request.body;
         const pathName = body['path'] as string;
         const pathToCreate = pathName.split('/').splice(1);
@@ -110,18 +99,7 @@ export class PathController extends BaseController {
     };
 
     private listDirectory = async (ctx: Context, next: Next): Promise<void> => {
-        const userId = ctx.state.user['id'];
-        const user = await User.findById(userId).populate({
-            path: 'rootPath',
-        });
-
-        if (user === null) {
-            ctx.status = 500;
-            ctx.type = 'json';
-            ctx.body = { msg: 'Cannot find user', data: null };
-            return next();
-        }
-
+        const user = ctx.state.user['obj'] as UserDoc;
         const path = ctx.request.query['path'] as string;
         const pathArr = path.split('/').splice(1);
 

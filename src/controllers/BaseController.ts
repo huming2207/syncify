@@ -1,5 +1,6 @@
 import * as koaJoiRouter from 'koa-joi-router';
 import { Context, Next } from 'koa';
+import User, { UserDoc } from '../models/UserModel';
 
 export abstract class BaseController {
     private _router: koaJoiRouter.Router;
@@ -12,8 +13,27 @@ export abstract class BaseController {
         this._router = value;
     }
 
+    protected getUser = async (ctx: Context, next: Next): Promise<void> => {
+        if (ctx.state.user === undefined) return next();
+        const userId = ctx.state.user['id'];
+        const user = await User.findById(userId).populate({
+            path: 'rootPath',
+        });
+
+        if (user === null) {
+            ctx.status = 500;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Cannot find user', data: null };
+            return;
+        }
+
+        ctx.state.user['obj'] = user;
+        return next();
+    };
+
     constructor() {
         this._router = koaJoiRouter.default();
+        this._router.use(this.getUser);
         this._router.prefix('/api');
     }
 }
