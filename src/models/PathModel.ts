@@ -13,7 +13,7 @@ export const PathSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'User' },
     childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
     name: { type: String },
-    files: [{ type: Schema.Types.ObjectId, ref: 'fs.files' }],
+    files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
 });
 
 PathSchema.pre<PathDoc>('find', function (next: HookNextFunction) {

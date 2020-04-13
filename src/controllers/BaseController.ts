@@ -1,6 +1,6 @@
 import * as koaJoiRouter from 'koa-joi-router';
 import { Context, Next } from 'koa';
-import User, { UserDoc } from '../models/UserModel';
+import User from '../models/UserModel';
 
 export abstract class BaseController {
     private _router: koaJoiRouter.Router;
