@@ -63,6 +63,21 @@ export class FileController extends BaseController {
             metadata: metadata,
         });
 
+        uploadStream.on('finish', () => {
+            bucket.rename(oid, parts.field['name']);
+        });
+
+        uploadStream.on('error', () => {
+            ctx.status = 200;
+            ctx.type = 'json';
+            ctx.body = {
+                msg: 'Failed to upload data, stream error',
+                data: null,
+            };
+
+            return next();
+        });
+
         let part;
         try {
             while ((part = await parts)) {
@@ -86,6 +101,7 @@ export class FileController extends BaseController {
                 id: oid,
             },
         };
+
         return next();
     };
 
