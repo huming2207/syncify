@@ -209,6 +209,62 @@ export class FileController extends BaseController {
     };
 
     private removeFile = async (ctx: Context, next: Next): Promise<void> => {
+        const user = ctx.state.user['obj'] as UserDoc;
+        const path = ctx.request.body['file'] as string;
+        let pathArr = [''];
+        if (path.startsWith('/')) {
+            pathArr = path.split('/').splice(1);
+        }
+
+        // Do a BFS here to iterate a path tree.
+        // If a path name is matched, continue; otherwise, return 404.
+        // Do a BFS here to iterate a path tree.
+        // If a path name is matched, continue; otherwise, return 404.
+        let currPath = user.rootPath;
+        let fileName = '';
+        for (const [idx, pathItem] of pathArr.entries()) {
+            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
+            if (idx === pathArr.length - 1) {
+                fileName = pathItem;
+                break;
+            }
+
+            if (childPath.length < 1) {
+                ctx.status = 404;
+                ctx.type = 'json';
+                ctx.body = { msg: 'Directory does not exist', data: pathArr };
+                return next();
+            } else {
+                currPath = childPath[0];
+            }
+        }
+
+        // Load files from the directory it should be in
+        await currPath.populate('files').execPopulate();
+
+        // Load file
+        const files = currPath.files.filter((element) => element.name === fileName);
+        if (files.length < 1) {
+            ctx.status = 404;
+            ctx.type = 'json';
+            ctx.body = { msg: 'File does not exist', data: pathArr };
+            return next();
+        }
+
+        // Perform deletion
+        const db = mongoose.connection.db;
+        const bucket = new mongodb.GridFSBucket(db);
+        bucket.delete(files[0].gridFile, async (err) => {
+            if (err) {
+                ctx.status = 500;
+                ctx.type = 'json';
+                ctx.body = { msg: 'Failed to delete file', data: err };
+                return next();
+            }
+
+            await currPath.updateOne({ $pullAll: { gridFile: files[0].gridFile } });
+        });
+
         return next();
     };
 }
