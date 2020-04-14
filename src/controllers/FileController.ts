@@ -250,26 +250,17 @@ export class FileController extends BaseController {
         }
 
         // Perform deletion
-        const gridFile = files[0].gridFile;
-        if (gridFile) {
-            const db = mongoose.connection.db;
-            const bucket = new mongodb.GridFSBucket(db);
-            bucket.delete(gridFile, (err) => {
-                if (err) {
-                    ctx.status = 500;
-                    ctx.type = 'json';
-                    ctx.body = { msg: 'Failed to delete file', data: err };
-                    return next();
-                }
-            });
+        try {
+            await files[0].remove();
+            ctx.status = 200;
+            ctx.type = 'json';
+            ctx.body = { msg: 'File deleted', data: null };
+            return next();
+        } catch (err) {
+            ctx.status = 500;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Failed to perform deletion', data: err };
+            return next();
         }
-
-        // Delete this file metadata record as well
-        await files[0].remove();
-
-        ctx.status = 200;
-        ctx.type = 'json';
-        ctx.body = { msg: 'File deleted', data: null };
-        return next();
     };
 }
