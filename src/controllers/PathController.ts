@@ -147,6 +147,37 @@ export class PathController extends BaseController {
     };
 
     private deleteDirectory = async (ctx: Context, next: Next): Promise<void> => {
-        return next();
+        const user = ctx.state.user['obj'] as UserDoc;
+        const path = ctx.request.body['path'] as string;
+        const pathArr = path.split('/').splice(1);
+
+        // Do a BFS here to iterate a path tree.
+        // If a path name is matched, continue; otherwise, return 404.
+        let currPath = user.rootPath;
+        for (const pathItem of pathArr) {
+            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
+
+            if (childPath.length < 1) {
+                ctx.status = 404;
+                ctx.type = 'json';
+                ctx.body = { msg: 'Directory does not exist', data: pathArr };
+                return next();
+            } else {
+                currPath = childPath[0];
+            }
+        }
+
+        try {
+            await currPath.remove();
+            ctx.status = 200;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Path deleted', data: pathArr };
+            return next();
+        } catch (err) {
+            ctx.status = 500;
+            ctx.type = 'json';
+            ctx.body = { msg: 'Failed to perform deletion', data: err };
+            return next();
+        }
     };
 }
