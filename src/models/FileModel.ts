@@ -1,4 +1,4 @@
-import { Types, Document, Schema, model, NativeError } from 'mongoose';
+import { Types, Document, Schema, model, NativeError, HookNextFunction } from 'mongoose';
 import mongodb from 'mongodb';
 import { UserDoc } from './UserModel';
 import { PathDoc } from './PathModel';
@@ -23,25 +23,15 @@ export const FileSchema = new Schema({
     gridFile: { type: Types.ObjectId },
 });
 
-FileSchema.post('remove', function (
-    err: NativeError,
-    doc: FileDoc,
-    next: (err?: NativeError) => void,
-) {
-    if (err) {
-        next(err);
-        return;
-    }
-
-    if (doc.gridFile) {
-        const db = doc.db.db;
+FileSchema.pre<FileDoc>('remove', function (next: HookNextFunction) {
+    if (this.gridFile) {
+        const db = this.db.db;
         const bucket = new mongodb.GridFSBucket(db);
-        bucket.delete(doc.gridFile, (err) => {
+        bucket.delete(this.gridFile, (err) => {
             if (err) next(err);
+            else next();
         });
     }
-
-    next();
 });
 
 export default model<FileDoc>('File', FileSchema);
