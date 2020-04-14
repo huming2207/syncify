@@ -32,6 +32,33 @@ export class FileController extends BaseController {
             },
             this.uploadFile,
         );
+
+        this.router.put(
+            '/file',
+            {
+                validate: {
+                    type: 'form',
+                    body: {
+                        old: Joi.string().regex(/^\//),
+                        new: Joi.string().regex(/^\//),
+                    },
+                },
+            },
+            this.moveFile,
+        );
+
+        this.router.delete(
+            '/file',
+            {
+                validate: {
+                    type: 'form',
+                    body: {
+                        file: Joi.string().regex(/^\//),
+                    },
+                },
+            },
+            this.removeFile,
+        );
     }
 
     private getFile = async (ctx: Context, next: Next): Promise<void> => {
@@ -177,7 +204,7 @@ export class FileController extends BaseController {
         return next();
     };
 
-    private renameFile = async (ctx: Context, next: Next): Promise<void> => {
+    private moveFile = async (ctx: Context, next: Next): Promise<void> => {
         return next();
     };
 
