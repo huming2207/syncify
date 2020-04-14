@@ -1,6 +1,6 @@
 import { UserDoc } from './UserModel';
 import { Document, Schema, model, HookNextFunction } from 'mongoose';
-import { FileDoc } from './FileModel';
+import File, { FileDoc } from './FileModel';
 
 export interface PathDoc extends Document {
     owner: UserDoc;
@@ -23,6 +23,11 @@ PathSchema.pre<PathDoc>('find', function (next: HookNextFunction) {
 
 PathSchema.pre<PathDoc>('findOne', function (next: HookNextFunction) {
     this.populate('childrenPath');
+    next();
+});
+
+PathSchema.pre<PathDoc>('remove', async function (next: HookNextFunction) {
+    await File.remove({ _id: { $in: this.files } });
     next();
 });
 
