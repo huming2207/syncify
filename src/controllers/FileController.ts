@@ -218,8 +218,6 @@ export class FileController extends BaseController {
 
         // Do a BFS here to iterate a path tree.
         // If a path name is matched, continue; otherwise, return 404.
-        // Do a BFS here to iterate a path tree.
-        // If a path name is matched, continue; otherwise, return 404.
         let currPath = user.rootPath;
         let fileName = '';
         for (const [idx, pathItem] of pathArr.entries()) {
@@ -252,19 +250,26 @@ export class FileController extends BaseController {
         }
 
         // Perform deletion
-        const db = mongoose.connection.db;
-        const bucket = new mongodb.GridFSBucket(db);
-        bucket.delete(files[0].gridFile, async (err) => {
-            if (err) {
-                ctx.status = 500;
-                ctx.type = 'json';
-                ctx.body = { msg: 'Failed to delete file', data: err };
-                return next();
-            }
+        const gridFile = files[0].gridFile;
+        if (gridFile) {
+            const db = mongoose.connection.db;
+            const bucket = new mongodb.GridFSBucket(db);
+            bucket.delete(gridFile, (err) => {
+                if (err) {
+                    ctx.status = 500;
+                    ctx.type = 'json';
+                    ctx.body = { msg: 'Failed to delete file', data: err };
+                    return next();
+                }
+            });
+        }
 
-            await currPath.updateOne({ $pullAll: { gridFile: files[0].gridFile } });
-        });
+        // Delete this file metadata record as well
+        await files[0].remove();
 
+        ctx.status = 200;
+        ctx.type = 'json';
+        ctx.body = { msg: 'File deleted', data: null };
         return next();
     };
 }
