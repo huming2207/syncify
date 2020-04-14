@@ -26,8 +26,23 @@ PathSchema.pre<PathDoc>('findOne', function (next: HookNextFunction) {
     next();
 });
 
-PathSchema.pre<PathDoc>('remove', async function (next: HookNextFunction) {
-    await File.remove({ _id: { $in: this.files } });
+PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
+    // Remove children path
+    this.childrenPath.forEach(async (element: PathDoc) => {
+        try {
+            await element.remove();
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Also remove files, if it has
+    if (this.files.length > 0) {
+        File.deleteMany({ _id: { $in: this.files } }).catch((err) => {
+            if (err) next(err);
+        });
+    }
+
     next();
 });
 
