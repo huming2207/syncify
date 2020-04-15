@@ -36,7 +36,7 @@ PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
         }
     });
 
-    // Also remove files, if it has
+    // Also remove files, if it has any
     if (this.files.length > 0) {
         File.deleteMany({ _id: { $in: this.files } }).catch((err) => {
             if (err) next(err);

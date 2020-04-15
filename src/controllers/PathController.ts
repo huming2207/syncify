@@ -1,7 +1,7 @@
 import { BaseController } from './BaseController';
 import { Context, Next } from 'koa';
 import { Joi } from 'koa-joi-router';
-import User, { UserDoc } from '../models/UserModel';
+import { UserDoc } from '../models/UserModel';
 import Path from '../models/PathModel';
 
 export class PathController extends BaseController {
