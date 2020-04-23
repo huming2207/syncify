@@ -24,7 +24,7 @@ export class FileController extends BaseController {
                     querystring: {
                         type: 'object',
                         properties: {
-                            path: { type: 'string', pattern: /^\// },
+                            path: { type: 'string', pattern: '^\/' }, // prettier-ignore
                             id: { type: 'string', minLength: 5 },
                         },
                     },
@@ -40,8 +40,8 @@ export class FileController extends BaseController {
                     body: {
                         type: 'object',
                         properties: {
-                            old: { type: 'string', pattern: /^\// },
-                            new: { type: 'string', pattern: /^\// },
+                            old: { type: 'string', pattern: '^\//' }, // prettier-ignore
+                            new: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
                 },
@@ -56,7 +56,7 @@ export class FileController extends BaseController {
                     body: {
                         type: 'object',
                         properties: {
-                            file: { type: 'string', pattern: /^\// },
+                            file: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
                 },

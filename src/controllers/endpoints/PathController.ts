@@ -16,7 +16,7 @@ export class PathController extends BaseController {
             $id: '#pathSchema',
             type: 'object',
             properties: {
-                path: { type: 'string', pattern: /^\// },
+                path: { type: 'string', pattern: '^\/' } // prettier-ignore
             },
             required: ['path'],
         });
@@ -25,7 +25,7 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
-                    querystring: { $ref: '#pathSchema' },
+                    querystring: { path: { type: 'string', pattern: '^\/' } } // prettier-ignore
                 },
             },
             this.listDirectory,
@@ -48,8 +48,8 @@ export class PathController extends BaseController {
                     body: {
                         type: 'object',
                         properties: {
-                            oldPath: { type: 'string', pattern: /^\// },
-                            newPath: { type: 'string', pattern: /^\// },
+                            oldPath: { type: 'string', pattern: '^\/' }, // prettier-ignore
+                            newPath: { type: 'string', pattern: '^\/' }, // prettier-ignore
                             move: { type: 'boolean' },
                         },
                     },
