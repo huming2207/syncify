@@ -25,8 +25,7 @@ export class FileController extends BaseController {
                     querystring: {
                         type: 'object',
                         properties: {
-                            path: { type: 'string', pattern: '^\/' }, // prettier-ignore
-                            id: { type: 'string', minLength: 5 },
+                            path: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
                 },
