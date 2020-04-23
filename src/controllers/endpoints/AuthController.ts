@@ -5,7 +5,7 @@ import User, { UserDoc } from '../../models/UserModel';
 import Path from '../../models/PathModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
-import { InternalError } from '../../common/Errors';
+import { InternalError, UnauthorisedError } from '../../common/Errors';
 
 export class AuthController extends BaseController {
     public bootstrap = (
@@ -95,7 +95,9 @@ export class AuthController extends BaseController {
         let user: UserDoc | null;
         try {
             user = await User.findOne({ $or: [{ username }, { email: username }] });
-            if (!user || !argon2.verify(user.password, password)) throw new Error();
+            if (!user || !argon2.verify(user.password, password)) {
+                throw new UnauthorisedError('Username or password is incorrect, try again');
+            }
 
             const token = jwt.sign(
                 {
@@ -115,10 +117,7 @@ export class AuthController extends BaseController {
                 data: { token },
             });
         } catch (err) {
-            reply.code(401).send({
-                message: 'Username or password is incorrect, try again',
-                data: null,
-            });
+            throw new UnauthorisedError('Username or password is incorrect, try again');
         }
     };
 }
