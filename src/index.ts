@@ -3,11 +3,29 @@ import fastify from 'fastify';
 import { connectToDb } from './common/Database';
 import { ProtectedMiddleware } from './controllers/middleware/ProtectedMiddleware';
 import { AuthController } from './controllers/endpoints/AuthController';
+import FastifySwagger from 'fastify-swagger';
+import { UserFormSchema } from './common/schemas/UserFormSchema';
+import { PathQuerySchema } from './common/schemas/PathQuerySchema';
 
 require('dotenv').config();
 
 const server = fastify();
 const prefix = { prefix: '/api' };
+
+server.register(FastifySwagger, {
+    routePrefix: '/api/documentation',
+    exposeRoute: true,
+    swagger: {
+        info: {
+            title: 'Syncify',
+            description: 'Cloud Computing Assignment 2',
+            version: '0.0.2',
+        },
+        consumes: ['application/x-www-form-urlencoded'],
+        produces: ['application/json'],
+        definitions: { UserFormSchema, PathQuerySchema },
+    },
+});
 
 server.register(new AuthController().bootstrap, prefix);
 server.register(new ProtectedMiddleware().bootstrap, prefix);
@@ -22,6 +40,14 @@ connectToDb()
                     console.error(err);
                     process.exit(1);
                 }
+
+                server.ready((err) => {
+                    if (err) {
+                        console.error(err);
+                        process.exit(1);
+                    }
+                    server.swagger();
+                });
                 console.log(`Fastify is listening at ${address}`);
             },
         );

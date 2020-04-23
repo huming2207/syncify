@@ -4,6 +4,7 @@ import Path from '../../models/PathModel';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
+import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -12,14 +13,6 @@ export class PathController extends BaseController {
         done: Function,
     ): void => {
         instance.register(FastifyFormBody);
-        instance.addSchema({
-            $id: '#pathSchema',
-            type: 'object',
-            properties: {
-                path: { type: 'string', pattern: '^\/' } // prettier-ignore
-            },
-            required: ['path'],
-        });
 
         instance.get(
             '/path',
@@ -35,7 +28,7 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
-                    body: { $ref: '#pathSchema' },
+                    body: PathQuerySchema,
                 },
             },
             this.createDirectory,
@@ -62,7 +55,7 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
-                    body: { $ref: '#pathSchema' },
+                    body: PathQuerySchema,
                 },
             },
             this.deleteDirectory,

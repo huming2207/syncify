@@ -6,6 +6,7 @@ import Path from '../../models/PathModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { InternalError, UnauthorisedError } from '../../common/Errors';
+import { UserFormSchema } from '../../common/schemas/UserFormSchema';
 
 export class AuthController extends BaseController {
     public bootstrap = (
@@ -14,23 +15,11 @@ export class AuthController extends BaseController {
         done: Function,
     ): void => {
         instance.register(FastifyFormBody);
-
-        instance.addSchema({
-            $id: '#userRegForm',
-            type: 'object',
-            properties: {
-                username: { type: 'string', minLength: 3, maxLength: 60 },
-                password: { type: 'string', minLength: 8, maxLength: 20 },
-                email: { type: 'string', format: 'email' },
-            },
-            required: ['username', 'password'],
-        });
-
         instance.post(
             '/auth/register',
             {
                 schema: {
-                    body: { $ref: '#userRegForm' },
+                    body: UserFormSchema,
                 },
             },
             this.register,
@@ -40,7 +29,7 @@ export class AuthController extends BaseController {
             '/auth/login',
             {
                 schema: {
-                    body: { $ref: '#userRegForm' },
+                    body: UserFormSchema,
                 },
             },
             this.login,
