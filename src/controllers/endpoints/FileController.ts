@@ -8,7 +8,8 @@ import File from '../../models/FileModel';
 import User from '../../models/UserModel';
 import Path from '../../models/PathModel';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
-import pump from 'pump';
+import { Readable } from 'stream';
+import StreamMeter from 'stream-meter';
 
 export class FileController extends BaseController {
     public bootstrap = (
@@ -120,17 +121,14 @@ export class FileController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Failed to find the user');
         if (!req.isMultipart()) throw new BadRequestError('Request is not a Multipart');
-        if (!req.body['hash'] || !req.body['type'] || !req.body['name']) {
-            throw new BadRequestError('Missing parameters');
-        }
 
         const db = mongoose.connection.db;
         const bucket = new mongodb.GridFSBucket(db);
 
-        const hash = '';
-        const size = 0;
-        const mimeType = '';
-        const fileName = '';
+        // Parse size from Content-Length
+        const streamMeter = StreamMeter();
+        let mimeType = '';
+        let fileName = '';
 
         const oid = new mongodb.ObjectId();
         const uploadStream = bucket.openUploadStreamWithId(oid, fileName);
@@ -157,8 +155,7 @@ export class FileController extends BaseController {
 
             // Create file index
             const file = await File.create({
-                size,
-                hash,
+                size: streamMeter.bytes,
                 type: mimeType,
                 name: fileName,
                 owner: user._id,
@@ -174,21 +171,23 @@ export class FileController extends BaseController {
             throw new BadRequestError('Stream error');
         });
 
-        const multipart = req.multipart(
-            (field, file, filename, encoding, mimetype) => {
-                console.log(filename, field, encoding, mimetype);
-                pump(file, uploadStream, (err) => {
-                    if (err) throw new BadRequestError(`Failed to upload: ${err}`);
-                });
+        req.multipart(
+            (field, file: Readable, filename, encoding, mimetype) => {
+                if (field === 'file') {
+                    fileName = filename;
+                    mimeType = mimetype;
+                    file.pipe(streamMeter).pipe(uploadStream);
+                }
             },
             (err) => {
                 if (err) throw new BadRequestError(`Failed to upload: ${err}`);
             },
+            {
+                limits: {
+                    files: 1,
+                },
+            },
         );
-
-        multipart.on('field', function (key, value) {
-            console.log('form-data', key, value);
-        });
 
         reply.code(200).send({
             message: 'File uploaded',
