@@ -1,0 +1,17 @@
+# Syncify API Server
+
+Yet another self-deployable/self-hosted Storage-as-a-Service and data syncing platform
+
+By Jackson Ming Hu (s3554025) and Tein Hwlar Phyu (s3734613), for RMIT [Cloud Computing](http://www1.rmit.edu.au/courses/049803) Assignment 2.
+
+## Getting started
+
+1. Clone the code
+2. Run `npm install`
+3. Run `npm run debug`
+4. Have fun
+
+## API Reference (TBD)
+
+Go to [http://127.0.0.1:3000/api/documentation](http://127.0.0.1:3000/api/documentation) for Swagger Web UI.
+
