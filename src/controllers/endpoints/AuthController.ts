@@ -2,8 +2,10 @@ import { BaseController } from '../BaseController';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
 import User, { UserDoc } from '../../models/UserModel';
+import Path from '../../models/PathModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import { InternalError } from '../../common/Errors';
 
 export class AuthController extends BaseController {
     public bootstrap = (
@@ -51,12 +53,24 @@ export class AuthController extends BaseController {
         const password = req.body['password'] as string;
         const email = req.body['email'] as string;
 
+        const createdUser = await User.create({
+            username,
+            password: await argon2.hash(password),
+            email,
+        });
+
+        if (!createdUser) throw new InternalError('Failed to create user');
+
+        const createdPath = await Path.create({
+            owner: createdUser,
+            name: '',
+        });
+
+        if (!createdPath) throw new InternalError('Failed to create root path');
+
         try {
-            const createdUser = await User.create({
-                username,
-                password: await argon2.hash(password),
-                email,
-            });
+            createdUser.rootPath = createdPath;
+            await createdUser.save();
 
             reply.code(200).send({
                 message: 'User created',
@@ -81,7 +95,7 @@ export class AuthController extends BaseController {
         let user: UserDoc | null;
         try {
             user = await User.findOne({ $or: [{ username }, { email: username }] });
-            if (user === null || !argon2.verify(user.password, password)) throw new Error();
+            if (!user || !argon2.verify(user.password, password)) throw new Error();
 
             const token = jwt.sign(
                 {
