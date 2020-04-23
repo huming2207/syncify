@@ -107,7 +107,7 @@ export class PathController extends BaseController {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Cannot load current user');
-        const pathName = req.body['path'] as string;
+        const pathName = req.query['path'] as string;
         const pathArr = pathName.split('/').splice(1);
 
         // Do a BFS here to iterate a path tree.
