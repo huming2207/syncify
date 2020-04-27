@@ -1,7 +1,14 @@
 import { StorageAdaptor } from './StorageAdaptor';
 import { Readable } from 'stream';
+import minio from 'minio';
 
 export class S3Adaptor implements StorageAdaptor {
+    private client: minio.Client;
+
+    constructor(options: minio.ClientOptions) {
+        this.client = new minio.Client(options);
+    }
+
     public performStoreObject = async (
         bucketName: string,
         fileName: string,
