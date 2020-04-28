@@ -1,6 +1,8 @@
 import { StorageAdapter } from './StorageAdapter';
 import { Readable } from 'stream';
 import minio from 'minio';
+import mongoose from 'mongoose';
+import mongodb from 'mongodb';
 
 export class S3Adapter implements StorageAdapter {
     private client: minio.Client;
@@ -11,16 +13,14 @@ export class S3Adapter implements StorageAdapter {
 
     public performStoreObject = async (
         bucketName: string,
-        fileName: string,
         stream: Readable,
-        size: number,
-    ): Promise<string> => {
+    ): Promise<mongodb.ObjectId> => {
         throw new Error('Method not implemented.');
     };
 
     public performRetrieveObject = async (
         bucketName: string,
-        fileName: string,
+        id: mongodb.ObjectId,
     ): Promise<Readable> => {
         throw new Error('Method not implemented.');
     };

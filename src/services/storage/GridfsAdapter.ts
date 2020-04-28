@@ -1,21 +1,29 @@
 import { StorageAdapter } from './StorageAdapter';
 import { Readable } from 'stream';
+import mongoose from 'mongoose';
+import mongodb from 'mongodb';
 
 export class GridfsAdapter implements StorageAdapter {
     public performStoreObject = async (
         bucketName: string,
-        fileName: string,
         stream: Readable,
-        size: number,
-    ): Promise<string> => {
-        throw new Error('Method not implemented.');
+    ): Promise<mongodb.ObjectId> => {
+        const db = mongoose.connection.db;
+        const bucket = new mongodb.GridFSBucket(db, { bucketName });
+        const oid = new mongodb.ObjectId();
+        const uploadStream = bucket.openUploadStreamWithId(oid, '');
+        stream.pipe(uploadStream);
+
+        return oid;
     };
 
     public performRetrieveObject = async (
         bucketName: string,
-        fileName: string,
+        id: mongodb.ObjectId,
     ): Promise<Readable> => {
-        throw new Error('Method not implemented.');
+        const db = mongoose.connection.db;
+        const bucket = new mongodb.GridFSBucket(db, { bucketName });
+        return bucket.openDownloadStream(id);
     };
 
     public performCopyObject = async (
