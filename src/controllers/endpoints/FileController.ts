@@ -132,7 +132,25 @@ export class FileController extends BaseController {
         const oid = new mongodb.ObjectId();
         const uploadStream = bucket.openUploadStreamWithId(oid, fileName);
 
-        uploadStream.on('finish', async () => {
+        const busboy = req.multipart(
+            (field, file: Readable, filename, encoding, mimetype) => {
+                if (field === 'file') {
+                    fileName = filename;
+                    mimeType = mimetype;
+                    file.pipe(streamMeter).pipe(uploadStream);
+                }
+            },
+            (err) => {
+                if (err) throw new BadRequestError(`Failed to upload: ${err}`);
+            },
+            {
+                limits: {
+                    files: 1,
+                },
+            },
+        );
+
+        busboy.on('finish', async () => {
             bucket.rename(oid, fileName);
             const path = req.query['path'] as string;
             const pathArr = path.split('/').splice(1);
@@ -164,35 +182,13 @@ export class FileController extends BaseController {
 
             // Also add file index object to path
             await Path.updateOne({ _id: currPath._id }, { $push: { files: file._id } });
-        });
 
-        uploadStream.on('error', () => {
-            throw new BadRequestError('Stream error');
-        });
-
-        req.multipart(
-            (field, file: Readable, filename, encoding, mimetype) => {
-                if (field === 'file') {
-                    fileName = filename;
-                    mimeType = mimetype;
-                    file.pipe(streamMeter).pipe(uploadStream);
-                }
-            },
-            (err) => {
-                if (err) throw new BadRequestError(`Failed to upload: ${err}`);
-            },
-            {
-                limits: {
-                    files: 1,
+            reply.code(200).send({
+                message: 'File uploaded',
+                data: {
+                    id: oid,
                 },
-            },
-        );
-
-        reply.code(200).send({
-            message: 'File uploaded',
-            data: {
-                id: oid,
-            },
+            });
         });
     };
 
