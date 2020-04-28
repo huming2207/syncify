@@ -111,7 +111,7 @@ export class FileController extends BaseController {
         // Stream the file
         reply
             .code(200)
-            .header('Content-Disposition', 'attachment; filename=test.html')
+            .header('Content-Disposition', `attachment; filename=${files[0].name}`)
             .send(bucket.openDownloadStream(files[0].gridFile));
     };
 
