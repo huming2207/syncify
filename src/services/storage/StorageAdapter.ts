@@ -1,6 +1,6 @@
 import { Readable } from 'stream';
 
-export interface StorageAdaptor {
+export interface StorageAdapter {
     performStoreObject(
         bucketName: string,
         fileName: string,

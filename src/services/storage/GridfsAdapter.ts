@@ -1,7 +1,7 @@
-import { StorageAdaptor } from './StorageAdaptor';
+import { StorageAdapter } from './StorageAdapter';
 import { Readable } from 'stream';
 
-export class GridfsAdaptor implements StorageAdaptor {
+export class GridfsAdapter implements StorageAdapter {
     public performStoreObject = async (
         bucketName: string,
         fileName: string,

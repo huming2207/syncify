@@ -1,8 +1,8 @@
-import { StorageAdaptor } from './StorageAdaptor';
+import { StorageAdapter } from './StorageAdapter';
 import { Readable } from 'stream';
 import minio from 'minio';
 
-export class S3Adaptor implements StorageAdaptor {
+export class S3Adapter implements StorageAdapter {
     private client: minio.Client;
 
     constructor(options: minio.ClientOptions) {
