@@ -1,4 +1,4 @@
-import { StorageAdapter } from './StorageAdapter';
+import { StorageAdapter } from './backends/StorageAdapter';
 import { Readable, Stream } from 'stream';
 import { ObjectId } from 'mongodb';
 
