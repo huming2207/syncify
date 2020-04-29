@@ -112,7 +112,7 @@ export class FileController extends BaseController {
         reply
             .code(200)
             .header('Content-Disposition', `attachment; filename=${files[0].name}`)
-            .send(bucket.openDownloadStream(files[0].gridFile));
+            .send(bucket.openDownloadStream(files[0].storageId));
     };
 
     private uploadFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
@@ -177,7 +177,7 @@ export class FileController extends BaseController {
                 name: fileName,
                 owner: user._id,
                 path: currPath._id,
-                gridFile: oid,
+                storageId: oid,
             });
 
             // Also add file index object to path

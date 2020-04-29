@@ -10,7 +10,7 @@ export interface FileDoc extends Document {
     name: string;
     owner: UserDoc;
     path: PathDoc;
-    gridFile: Types.ObjectId;
+    storageId: Types.ObjectId;
 }
 
 export const FileSchema = new Schema({
@@ -20,14 +20,14 @@ export const FileSchema = new Schema({
     name: { type: String },
     owner: { type: Types.ObjectId, ref: 'User' },
     path: { type: Types.ObjectId, ref: 'Path' },
-    gridFile: { type: Types.ObjectId },
+    storageId: { type: Types.ObjectId },
 });
 
 FileSchema.pre<FileDoc>('remove', function (next: HookNextFunction) {
-    if (this.gridFile) {
+    if (this.storageId) {
         const db = this.db.db;
         const bucket = new mongodb.GridFSBucket(db);
-        bucket.delete(this.gridFile, (err) => {
+        bucket.delete(this.storageId, (err) => {
             if (err) next(err);
             else next();
         });
