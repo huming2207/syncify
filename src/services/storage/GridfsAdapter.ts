@@ -1,40 +1,60 @@
 import { StorageAdapter } from './StorageAdapter';
-import { Readable } from 'stream';
+import { Readable, Stream } from 'stream';
 import mongoose from 'mongoose';
-import mongodb from 'mongodb';
+import mongodb, { ObjectId } from 'mongodb';
 
 export class GridfsAdapter implements StorageAdapter {
-    public performStoreObject = async (
-        bucketName: string,
-        stream: Readable,
-    ): Promise<mongodb.ObjectId> => {
-        const db = mongoose.connection.db;
-        const bucket = new mongodb.GridFSBucket(db, { bucketName });
-        const oid = new mongodb.ObjectId();
-        const uploadStream = bucket.openUploadStreamWithId(oid, '');
-        stream.pipe(uploadStream);
+    public performStoreObject = async (bucketName: string, stream: Readable): Promise<ObjectId> => {
+        return new Promise((resolve, reject) => {
+            const db = mongoose.connection.db;
+            const bucket = new mongodb.GridFSBucket(db, { bucketName });
+            const oid = new ObjectId();
+            const uploadStream = bucket.openUploadStreamWithId(oid, '');
+            uploadStream.on('error', (err) => {
+                reject(err);
+            });
 
-        return oid;
+            uploadStream.on('finish', () => {
+                resolve(oid);
+            });
+
+            stream.pipe(uploadStream);
+        });
     };
 
-    public performRetrieveObject = async (
-        bucketName: string,
-        id: mongodb.ObjectId,
-    ): Promise<Readable> => {
+    public performRetrieveObject = async (bucketName: string, id: ObjectId): Promise<Stream> => {
         const db = mongoose.connection.db;
         const bucket = new mongodb.GridFSBucket(db, { bucketName });
         return bucket.openDownloadStream(id);
     };
 
-    public performCopyObject = async (
-        bucketName: string,
-        srcName: string,
-        dstName: string,
-    ): Promise<void> => {
-        throw new Error('Method not implemented.');
+    public performCopyObject = async (bucketName: string, id: ObjectId): Promise<ObjectId> => {
+        return new Promise((resolve, reject) => {
+            const db = mongoose.connection.db;
+            const bucket = new mongodb.GridFSBucket(db, { bucketName });
+            const origStream = bucket.openDownloadStream(id);
+            const oid = new ObjectId();
+            const newStream = bucket.openUploadStreamWithId(oid, '');
+            newStream.on('error', (err) => {
+                reject(err);
+            });
+
+            newStream.on('finish', () => {
+                resolve(oid);
+            });
+
+            origStream.pipe(newStream);
+        });
     };
 
-    public performDeleteObject = async (bucketName: string, fileName: string): Promise<void> => {
-        throw new Error('Method not implemented.');
+    public performDeleteObject = async (bucketName: string, id: ObjectId): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            const db = mongoose.connection.db;
+            const bucket = new mongodb.GridFSBucket(db, { bucketName });
+            bucket.delete(id, (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
     };
 }
