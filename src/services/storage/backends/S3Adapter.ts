@@ -10,10 +10,12 @@ export class S3Adapter implements StorageAdapter {
         this.client = new minio.Client(options);
     }
 
-    public performStoreObject = async (bucketName: string, stream: Readable): Promise<ObjectId> => {
-        const oid = new ObjectId();
-        await this.client.putObject(bucketName, oid.toHexString(), stream);
-        return oid;
+    public performStoreObject = async (
+        bucketName: string,
+        stream: Readable,
+        id: ObjectId,
+    ): Promise<void> => {
+        await this.client.putObject(bucketName, id.toHexString(), stream);
     };
 
     public performRetrieveObject = async (bucketName: string, id: ObjectId): Promise<Stream> => {

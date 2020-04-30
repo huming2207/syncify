@@ -29,8 +29,12 @@ export class StorageService {
         }
     }
 
-    public storeObject = async (bucketName: string, stream: Readable): Promise<ObjectId> => {
-        return this.adapter.performStoreObject(bucketName, stream);
+    public storeObject = async (
+        bucketName: string,
+        stream: Readable,
+        id: ObjectId,
+    ): Promise<void> => {
+        return this.adapter.performStoreObject(bucketName, stream, id);
     };
 
     public retrieveObject = async (bucketName: string, id: ObjectId): Promise<Stream> => {

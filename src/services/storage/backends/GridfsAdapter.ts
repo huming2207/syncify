@@ -4,18 +4,21 @@ import mongoose from 'mongoose';
 import mongodb, { ObjectId } from 'mongodb';
 
 export class GridfsAdapter implements StorageAdapter {
-    public performStoreObject = async (bucketName: string, stream: Readable): Promise<ObjectId> => {
+    public performStoreObject = async (
+        bucketName: string,
+        stream: Readable,
+        id: ObjectId,
+    ): Promise<void> => {
         return new Promise((resolve, reject) => {
             const db = mongoose.connection.db;
             const bucket = new mongodb.GridFSBucket(db, { bucketName });
-            const oid = new ObjectId();
-            const uploadStream = bucket.openUploadStreamWithId(oid, '');
+            const uploadStream = bucket.openUploadStreamWithId(id, '');
             uploadStream.on('error', (err) => {
                 reject(err);
             });
 
             uploadStream.on('finish', () => {
-                resolve(oid);
+                resolve();
             });
 
             stream.pipe(uploadStream);
