@@ -1,12 +1,32 @@
 import { StorageAdapter } from './backends/StorageAdapter';
 import { Readable, Stream } from 'stream';
 import { ObjectId } from 'mongodb';
+import { S3Adapter } from './backends/S3Adapter';
+import { GridfsAdapter } from './backends/GridfsAdapter';
 
 export class StorageService {
     private adapter: StorageAdapter;
 
-    constructor(adapter: StorageAdapter) {
-        this.adapter = adapter;
+    constructor() {
+        if (process.env.SYNCIFY_STORAGE_BACKEND === 's3') {
+            this.adapter = new S3Adapter({
+                endPoint: process.env.SYNCIFY_STORAGE_ENDPOINT
+                    ? process.env.SYNCIFY_STORAGE_ENDPOINT
+                    : '',
+                port: parseInt(
+                    process.env.SYNCIFY_STORAGE_PORT ? process.env.SYNCIFY_STORAGE_PORT : '443',
+                ),
+                useSSL: process.env.SYNCIFY_STORAGE_USE_SSL === 'true',
+                accessKey: process.env.SYNCIFY_STORAGE_ACCESS_KEY
+                    ? process.env.SYNCIFY_STORAGE_ACCESS_KEY
+                    : '',
+                secretKey: process.env.SYNCIFY_STORAGE_SECRET_KEY
+                    ? process.env.SYNCIFY_STORAGE_SECRET_KEY
+                    : '',
+            });
+        } else {
+            this.adapter = new GridfsAdapter();
+        }
     }
 
     public storeObject = async (bucketName: string, stream: Readable): Promise<ObjectId> => {
@@ -25,3 +45,7 @@ export class StorageService {
         return this.adapter.performDeleteObject(bucketName, id);
     };
 }
+
+export const StorageBucketName = process.env.SYNCIFY_STORAGE_BUCKET
+    ? process.env.SYNCIFY_STORAGE_BUCKET
+    : 'syncify';
