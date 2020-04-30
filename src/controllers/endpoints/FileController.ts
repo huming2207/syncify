@@ -3,15 +3,16 @@ import { MiddlewareOptions, ServerInstance, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import FastifyMultipart from 'fastify-multipart';
 import mongodb from 'mongodb';
-import mongoose from 'mongoose';
 import File from '../../models/FileModel';
 import User from '../../models/UserModel';
 import Path from '../../models/PathModel';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
 import { Readable } from 'stream';
 import StreamMeter from 'stream-meter';
+import { StorageService, StorageBucketName } from '../../services/storage/StorageService';
 
 export class FileController extends BaseController {
+    private storage: StorageService = new StorageService();
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
@@ -75,9 +76,6 @@ export class FileController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Failed to find the user');
 
-        const db = mongoose.connection.db;
-        const bucket = new mongodb.GridFSBucket(db);
-
         const path = req.query['path'] as string;
         const pathArr = path.split('/').splice(1);
 
@@ -109,10 +107,11 @@ export class FileController extends BaseController {
         }
 
         // Stream the file
+        const file = files[0];
         reply
             .code(200)
-            .header('Content-Disposition', `attachment; filename=${files[0].name}`)
-            .send(bucket.openDownloadStream(files[0].storageId));
+            .header('Content-Disposition', `attachment; filename=${file.name}`)
+            .send(await this.storage.retrieveObject(StorageBucketName, file.storageId));
     };
 
     private uploadFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
@@ -121,23 +120,18 @@ export class FileController extends BaseController {
         if (!user) throw new NotFoundError('Failed to find the user');
         if (!req.isMultipart()) throw new BadRequestError('Request is not a Multipart');
 
-        const db = mongoose.connection.db;
-        const bucket = new mongodb.GridFSBucket(db);
-
         // Parse size from Content-Length
         const streamMeter = StreamMeter();
         let mimeType = '';
         let fileName = '';
 
-        const oid = new mongodb.ObjectId();
-        const uploadStream = bucket.openUploadStreamWithId(oid, fileName);
-
+        let oid = new mongodb.ObjectId();
         const busboy = req.multipart(
-            (field, file: Readable, filename, encoding, mimetype) => {
+            async (field, file: Readable, filename, encoding, mimetype) => {
                 if (field === 'file') {
                     fileName = filename;
                     mimeType = mimetype;
-                    file.pipe(streamMeter).pipe(uploadStream);
+                    oid = await this.storage.storeObject(StorageBucketName, file.pipe(streamMeter));
                 }
             },
             (err) => {
@@ -151,7 +145,6 @@ export class FileController extends BaseController {
         );
 
         busboy.on('finish', async () => {
-            bucket.rename(oid, fileName);
             const path = req.query['path'] as string;
             const pathArr = path.split('/').splice(1);
 
@@ -236,6 +229,7 @@ export class FileController extends BaseController {
 
         // Perform deletion
         try {
+            await this.storage.deleteObject(StorageBucketName, files[0].storageId);
             await files[0].remove();
             reply.code(200).send({ message: 'File deleted' });
         } catch (err) {
