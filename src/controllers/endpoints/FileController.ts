@@ -125,13 +125,13 @@ export class FileController extends BaseController {
         let mimeType = '';
         let fileName = '';
 
-        let oid = new mongodb.ObjectId();
+        const oid = new mongodb.ObjectID();
         const busboy = req.multipart(
             async (field, file: Readable, filename, encoding, mimetype) => {
                 if (field === 'file') {
                     fileName = filename;
                     mimeType = mimetype;
-                    oid = await this.storage.storeObject(StorageBucketName, file.pipe(streamMeter));
+                    await this.storage.storeObject(StorageBucketName, file.pipe(streamMeter), oid);
                 }
             },
             (err) => {
