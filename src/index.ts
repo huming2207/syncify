@@ -29,6 +29,15 @@ server.register(FastifySwagger, {
 
 server.register(new AuthController().bootstrap, prefix);
 server.register(new ProtectedMiddleware().bootstrap, prefix);
+server.setErrorHandler((error, req, reply) => {
+    reply.code(error.statusCode ? error.statusCode : 500).send({
+        message: error.message ? error.message : 'Unknown error',
+        data: {
+            name: error.name ? error.name : 'Unknown',
+            validation: error.validation,
+        },
+    });
+});
 
 connectToDb()
     .then(() => {
