@@ -1,13 +1,13 @@
 import { StorageAdapter } from './StorageAdapter';
 import { Readable, Stream } from 'stream';
-import minio, { CopyConditions } from 'minio';
+import { Client, CopyConditions, ClientOptions } from 'minio';
 import { ObjectId } from 'mongodb';
 
 export class S3Adapter implements StorageAdapter {
-    private client: minio.Client;
+    private client: Client;
 
-    constructor(options: minio.ClientOptions) {
-        this.client = new minio.Client(options);
+    constructor(options: ClientOptions) {
+        this.client = new Client(options);
     }
 
     public performStoreObject = async (
@@ -15,6 +15,13 @@ export class S3Adapter implements StorageAdapter {
         stream: Readable,
         id: ObjectId,
     ): Promise<void> => {
+        if (!(await this.client.bucketExists(bucketName)))
+            await this.client.makeBucket(
+                bucketName,
+                process.env.SYNCIFY_STORAGE_REGION
+                    ? process.env.SYNCIFY_STORAGE_REGION
+                    : 'us-east-1',
+            );
         await this.client.putObject(bucketName, id.toHexString(), stream);
     };
 
