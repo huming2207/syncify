@@ -5,9 +5,10 @@ import { S3Adapter } from './backends/S3Adapter';
 import { GridfsAdapter } from './backends/GridfsAdapter';
 
 export class StorageService {
+    private static _instance: StorageService;
     private adapter: StorageAdapter;
 
-    constructor() {
+    private constructor() {
         if (process.env.SYNCIFY_STORAGE_BACKEND === 's3') {
             this.adapter = new S3Adapter({
                 endPoint: process.env.SYNCIFY_STORAGE_ENDPOINT
@@ -27,6 +28,10 @@ export class StorageService {
         } else {
             this.adapter = new GridfsAdapter();
         }
+    }
+
+    public static getInstance(): StorageService {
+        return this._instance || (this._instance = new this());
     }
 
     public storeObject = async (

@@ -12,7 +12,7 @@ import StreamMeter from 'stream-meter';
 import { StorageService, StorageBucketName } from '../../services/storage/StorageService';
 
 export class FileController extends BaseController {
-    private storage: StorageService = new StorageService();
+    private storage: StorageService = StorageService.getInstance();
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
