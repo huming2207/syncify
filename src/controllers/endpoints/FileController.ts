@@ -126,16 +126,62 @@ export class FileController extends BaseController {
         let fileName = '';
 
         const oid = new mongodb.ObjectID();
-        const busboy = req.multipart(
+        req.multipart(
             async (field, file: Readable, filename, encoding, mimetype) => {
                 if (field === 'file') {
                     fileName = filename;
                     mimeType = mimetype;
-                    await this.storage.storeObject(StorageBucketName, file.pipe(streamMeter), oid);
+                    this.storage
+                        .storeObject(StorageBucketName, file.pipe(streamMeter), oid)
+                        .catch((err: Error) => {
+                            reply.code(500).send({
+                                message: `Something wrong with storage backend: ${err.message}`,
+                                data: {
+                                    name: err.name ? err.name : 'Unknown',
+                                },
+                            });
+                        });
                 }
             },
-            (err) => {
+            async (err) => {
                 if (err) throw new BadRequestError(`Failed to upload: ${err}`);
+                const path = req.query['path'] as string;
+                const pathArr = path.split('/').splice(1);
+
+                // Do a BFS here to iterate a path tree.
+                // If a path name is matched, continue; otherwise, return 404.
+                let currPath = user.rootPath;
+                for (const pathItem of pathArr) {
+                    const childPath = currPath.childrenPath.filter(
+                        (element) => element.name === pathItem,
+                    );
+
+                    if (childPath.length < 1) {
+                        throw new NotFoundError('Directory does not exist');
+                    } else {
+                        currPath = childPath[0];
+                    }
+                }
+
+                // Create file index
+                const file = await File.create({
+                    size: streamMeter.bytes,
+                    type: mimeType,
+                    name: fileName,
+                    owner: user._id,
+                    path: currPath._id,
+                    storageId: oid,
+                });
+
+                // Also add file index object to path
+                await Path.updateOne({ _id: currPath._id }, { $push: { files: file._id } });
+
+                reply.code(200).send({
+                    message: 'File uploaded',
+                    data: {
+                        id: oid,
+                    },
+                });
             },
             {
                 limits: {
@@ -143,46 +189,6 @@ export class FileController extends BaseController {
                 },
             },
         );
-
-        busboy.on('finish', async () => {
-            const path = req.query['path'] as string;
-            const pathArr = path.split('/').splice(1);
-
-            // Do a BFS here to iterate a path tree.
-            // If a path name is matched, continue; otherwise, return 404.
-            let currPath = user.rootPath;
-            for (const pathItem of pathArr) {
-                const childPath = currPath.childrenPath.filter(
-                    (element) => element.name === pathItem,
-                );
-
-                if (childPath.length < 1) {
-                    throw new NotFoundError('Directory does not exist');
-                } else {
-                    currPath = childPath[0];
-                }
-            }
-
-            // Create file index
-            const file = await File.create({
-                size: streamMeter.bytes,
-                type: mimeType,
-                name: fileName,
-                owner: user._id,
-                path: currPath._id,
-                storageId: oid,
-            });
-
-            // Also add file index object to path
-            await Path.updateOne({ _id: currPath._id }, { $push: { files: file._id } });
-
-            reply.code(200).send({
-                message: 'File uploaded',
-                data: {
-                    id: oid,
-                },
-            });
-        });
     };
 
     private moveFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
