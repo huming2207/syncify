@@ -2,6 +2,7 @@ import { Types, Document, Schema, model, HookNextFunction } from 'mongoose';
 import mongodb from 'mongodb';
 import { UserDoc } from './UserModel';
 import { PathDoc } from './PathModel';
+import { StorageService, StorageBucketName } from '../services/storage/StorageService';
 
 export interface FileDoc extends Document {
     size: number;
@@ -25,12 +26,15 @@ export const FileSchema = new Schema({
 
 FileSchema.pre<FileDoc>('remove', function (next: HookNextFunction) {
     if (this.storageId) {
-        const db = this.db.db;
-        const bucket = new mongodb.GridFSBucket(db);
-        bucket.delete(this.storageId, (err) => {
-            if (err) next(err);
-            else next();
-        });
+        const storage = StorageService.getInstance();
+        storage
+            .deleteObject(StorageBucketName, this.storageId)
+            .then(() => {
+                next();
+            })
+            .catch((err) => {
+                if (err) next(err);
+            });
     }
 });
 
