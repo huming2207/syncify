@@ -127,7 +127,7 @@ export class FileController extends BaseController {
 
         const oid = new mongodb.ObjectID();
         req.multipart(
-            async (field, file: Readable, filename, encoding, mimetype) => {
+            (field, file: Readable, filename, encoding, mimetype) => {
                 if (field === 'file') {
                     fileName = filename;
                     mimeType = mimetype;
