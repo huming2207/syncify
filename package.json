@@ -43,7 +43,7 @@
     "@types/joi-password-complexity": "3.1.0",
     "@types/json-schema": "7.0.4",
     "@types/jsonwebtoken": "8.3.9",
-    "@types/mongoose": "5.7.14",
+    "@types/mongoose": "5.7.15",
     "@types/node": "13.13.4",
     "@types/stream-meter": "0.0.22",
     "@typescript-eslint/eslint-plugin": "2.29.0",
