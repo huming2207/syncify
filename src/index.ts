@@ -20,7 +20,7 @@ server.register(FastifyOas, {
         info: {
             title: 'Syncify',
             description: 'Cloud Computing Assignment 2',
-            version: '0.0.2',
+            version: '0.1.0',
         },
         produces: ['application/json'],
         definitions: { UserFormSchema, PathQuerySchema },
