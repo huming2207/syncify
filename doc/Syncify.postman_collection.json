@@ -1,0 +1,320 @@
+{
+	"info": {
+		"_postman_id": "3a78153e-06b3-4214-a569-8acefaa50275",
+		"name": "Syncify",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "jacksonhu2207",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "hu@su.sg",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/auth/register",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "jacksonhu2207",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "hu@su.sg",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/auth/login",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create path",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlYWFiZmQ5OTJkNTdkYjhhNzQ2MTEzZSIsInVzZXJuYW1lIjoiamFja3Nvbmh1MjIwNyIsImVtYWlsIjoiaHVAc3Uuc2ciLCJpYXQiOjE1ODgyNDg1NTgsImV4cCI6MTU4ODI1MjE1OH0.rMvZtqQzWmYHAXJVz-dFYVYYyBxGUhIG6u7_Z5nI5X7wCSFMFe6iQ-DUYbvKjm4K2ED6Ft1yBO53_xFMEEeKGQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "path",
+							"value": "/usr/test",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/path",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"path"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete path",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlYTBlZDBkZWE2Y2ZjNzcxZDcxYWI5YiIsInVzZXJuYW1lIjoiamFja3Nvbmh1MjIwNyIsImVtYWlsIjoiaHVAc3Uuc2ciLCJpYXQiOjE1ODc2MDUwNzgsImV4cCI6MTU4NzYwODY3OH0.5yPGzID2HMD7Kowyyjm5TG8LIJZ6tzoxPyu0n01XYwnzJuMh9L7dIauRo8-5fVfL-BTchsk1tnqoTzIV17dqfw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "path",
+							"value": "/usr/test",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/path",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"path"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List path",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlYTBlZDBkZWE2Y2ZjNzcxZDcxYWI5YiIsInVzZXJuYW1lIjoiamFja3Nvbmh1MjIwNyIsImVtYWlsIjoiaHVAc3Uuc2ciLCJpYXQiOjE1ODc2MDUwNzgsImV4cCI6MTU4NzYwODY3OH0.5yPGzID2HMD7Kowyyjm5TG8LIJZ6tzoxPyu0n01XYwnzJuMh9L7dIauRo8-5fVfL-BTchsk1tnqoTzIV17dqfw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "127.0.0.1:3000/api/path?path=/usr",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"path"
+					],
+					"query": [
+						{
+							"key": "path",
+							"value": "/usr"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete path",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlYWViNWQ4MGRjOTNiZmU3YTU5MzQzZSIsInVzZXJuYW1lIjoiamFja3Nvbmh1MjIwNyIsImVtYWlsIjoiaHVAc3Uuc2ciLCJpYXQiOjE1ODg1OTMzODcsImV4cCI6MTU4ODU5Njk4N30._yN5SO9BbnFDlODlI3XqV3io2YqZcNnYyn_zYKsYt9n61r11ic7nFXI2UxbtMypfpz02SHosP9BJGvNCf4ywhQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "path",
+							"value": "/usr",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/path",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"path"
+					],
+					"query": [
+						{
+							"key": "path",
+							"value": "/usr",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload file",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlYTBlZDBkZWE2Y2ZjNzcxZDcxYWI5YiIsInVzZXJuYW1lIjoiamFja3Nvbmh1MjIwNyIsImVtYWlsIjoiaHVAc3Uuc2ciLCJpYXQiOjE1ODc2MDg5MTcsImV4cCI6MTU4NzYxMjUxN30.0-7q5P2XWTM3ZsFa9cqyl3tynWuQKX9iTQiaz4DMzL8SWR9rdUCGNblqGEAExu9VBh_HFbSkVcLra_4WfdSc7Q",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/home/hu/Downloads/TuteLab8 Cloud Database.pdf"
+						},
+						{
+							"key": "size",
+							"value": "123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/file?path=/usr",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"file"
+					],
+					"query": [
+						{
+							"key": "path",
+							"value": "/usr"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

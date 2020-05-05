@@ -16,6 +16,7 @@ export class UserController extends BaseController {
             '/user/password',
             {
                 schema: {
+                    description: 'Change password',
                     body: {
                         type: 'object',
                         properties: {
@@ -23,6 +24,7 @@ export class UserController extends BaseController {
                         },
                         required: ['password'],
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.changePassword,

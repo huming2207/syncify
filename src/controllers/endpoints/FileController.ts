@@ -3,15 +3,16 @@ import { MiddlewareOptions, ServerInstance, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import FastifyMultipart from 'fastify-multipart';
 import mongodb from 'mongodb';
-import mongoose from 'mongoose';
 import File from '../../models/FileModel';
 import User from '../../models/UserModel';
 import Path from '../../models/PathModel';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
 import { Readable } from 'stream';
 import StreamMeter from 'stream-meter';
+import { StorageService, StorageBucketName } from '../../services/storage/StorageService';
 
 export class FileController extends BaseController {
+    private storage: StorageService = StorageService.getInstance();
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
@@ -22,10 +23,11 @@ export class FileController extends BaseController {
             '/file',
             {
                 schema: {
+                    description: 'Provide a file path to get a file',
                     querystring: {
                         type: 'object',
                         properties: {
-                            path: { type: 'string', pattern: '^\/' } // prettier-ignore
+                            file: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
                 },
@@ -37,6 +39,7 @@ export class FileController extends BaseController {
             '/file',
             {
                 schema: {
+                    description: 'Move a file from an old path to a new path',
                     body: {
                         type: 'object',
                         properties: {
@@ -44,6 +47,7 @@ export class FileController extends BaseController {
                             new: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.moveFile,
@@ -53,12 +57,14 @@ export class FileController extends BaseController {
             '/file',
             {
                 schema: {
+                    description: 'Delete a file based on the path provided',
                     body: {
                         type: 'object',
                         properties: {
                             file: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.removeFile,
@@ -74,9 +80,6 @@ export class FileController extends BaseController {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Failed to find the user');
-
-        const db = mongoose.connection.db;
-        const bucket = new mongodb.GridFSBucket(db);
 
         const path = req.query['path'] as string;
         const pathArr = path.split('/').splice(1);
@@ -109,10 +112,11 @@ export class FileController extends BaseController {
         }
 
         // Stream the file
+        const file = files[0];
         reply
             .code(200)
-            .header('Content-Disposition', 'attachment; filename=test.html')
-            .send(bucket.openDownloadStream(files[0].gridFile));
+            .header('Content-Disposition', `attachment; filename=${file.name}`)
+            .send(await this.storage.retrieveObject(StorageBucketName, file.storageId));
     };
 
     private uploadFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
@@ -121,65 +125,68 @@ export class FileController extends BaseController {
         if (!user) throw new NotFoundError('Failed to find the user');
         if (!req.isMultipart()) throw new BadRequestError('Request is not a Multipart');
 
-        const db = mongoose.connection.db;
-        const bucket = new mongodb.GridFSBucket(db);
-
         // Parse size from Content-Length
         const streamMeter = StreamMeter();
         let mimeType = '';
         let fileName = '';
 
-        const oid = new mongodb.ObjectId();
-        const uploadStream = bucket.openUploadStreamWithId(oid, fileName);
-
-        uploadStream.on('finish', async () => {
-            bucket.rename(oid, fileName);
-            const path = req.query['path'] as string;
-            const pathArr = path.split('/').splice(1);
-
-            // Do a BFS here to iterate a path tree.
-            // If a path name is matched, continue; otherwise, return 404.
-            let currPath = user.rootPath;
-            for (const pathItem of pathArr) {
-                const childPath = currPath.childrenPath.filter(
-                    (element) => element.name === pathItem,
-                );
-
-                if (childPath.length < 1) {
-                    throw new NotFoundError('Directory does not exist');
-                } else {
-                    currPath = childPath[0];
-                }
-            }
-
-            // Create file index
-            const file = await File.create({
-                size: streamMeter.bytes,
-                type: mimeType,
-                name: fileName,
-                owner: user._id,
-                path: currPath._id,
-                gridFile: oid,
-            });
-
-            // Also add file index object to path
-            await Path.updateOne({ _id: currPath._id }, { $push: { files: file._id } });
-        });
-
-        uploadStream.on('error', () => {
-            throw new BadRequestError('Stream error');
-        });
-
+        const oid = new mongodb.ObjectID();
         req.multipart(
             (field, file: Readable, filename, encoding, mimetype) => {
                 if (field === 'file') {
                     fileName = filename;
                     mimeType = mimetype;
-                    file.pipe(streamMeter).pipe(uploadStream);
+                    this.storage
+                        .storeObject(StorageBucketName, file.pipe(streamMeter), oid)
+                        .catch((err: Error) => {
+                            reply.code(500).send({
+                                message: `Something wrong with storage backend: ${err.message}`,
+                                data: {
+                                    name: err.name ? err.name : 'Unknown',
+                                },
+                            });
+                        });
                 }
             },
-            (err) => {
+            async (err) => {
                 if (err) throw new BadRequestError(`Failed to upload: ${err}`);
+                const path = req.query['path'] as string;
+                const pathArr = path.split('/').splice(1);
+
+                // Do a BFS here to iterate a path tree.
+                // If a path name is matched, continue; otherwise, return 404.
+                let currPath = user.rootPath;
+                for (const pathItem of pathArr) {
+                    const childPath = currPath.childrenPath.filter(
+                        (element) => element.name === pathItem,
+                    );
+
+                    if (childPath.length < 1) {
+                        throw new NotFoundError('Directory does not exist');
+                    } else {
+                        currPath = childPath[0];
+                    }
+                }
+
+                // Create file index
+                const file = await File.create({
+                    size: streamMeter.bytes,
+                    type: mimeType,
+                    name: fileName,
+                    owner: user._id,
+                    path: currPath._id,
+                    storageId: oid,
+                });
+
+                // Also add file index object to path
+                await Path.updateOne({ _id: currPath._id }, { $push: { files: file._id } });
+
+                reply.code(200).send({
+                    message: 'File uploaded',
+                    data: {
+                        id: oid,
+                    },
+                });
             },
             {
                 limits: {
@@ -187,13 +194,6 @@ export class FileController extends BaseController {
                 },
             },
         );
-
-        reply.code(200).send({
-            message: 'File uploaded',
-            data: {
-                id: oid,
-            },
-        });
     };
 
     private moveFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
@@ -240,6 +240,7 @@ export class FileController extends BaseController {
 
         // Perform deletion
         try {
+            await this.storage.deleteObject(StorageBucketName, files[0].storageId);
             await files[0].remove();
             reply.code(200).send({ message: 'File deleted' });
         } catch (err) {

@@ -1,7 +1,7 @@
 import { Types, Document, Schema, model, HookNextFunction } from 'mongoose';
-import mongodb from 'mongodb';
 import { UserDoc } from './UserModel';
 import { PathDoc } from './PathModel';
+import { StorageService, StorageBucketName } from '../services/storage/StorageService';
 
 export interface FileDoc extends Document {
     size: number;
@@ -10,7 +10,7 @@ export interface FileDoc extends Document {
     name: string;
     owner: UserDoc;
     path: PathDoc;
-    gridFile: Types.ObjectId;
+    storageId: Types.ObjectId;
 }
 
 export const FileSchema = new Schema({
@@ -20,17 +20,20 @@ export const FileSchema = new Schema({
     name: { type: String },
     owner: { type: Types.ObjectId, ref: 'User' },
     path: { type: Types.ObjectId, ref: 'Path' },
-    gridFile: { type: Types.ObjectId },
+    storageId: { type: Types.ObjectId },
 });
 
 FileSchema.pre<FileDoc>('remove', function (next: HookNextFunction) {
-    if (this.gridFile) {
-        const db = this.db.db;
-        const bucket = new mongodb.GridFSBucket(db);
-        bucket.delete(this.gridFile, (err) => {
-            if (err) next(err);
-            else next();
-        });
+    if (this.storageId) {
+        const storage = StorageService.getInstance();
+        storage
+            .deleteObject(StorageBucketName, this.storageId)
+            .then(() => {
+                next();
+            })
+            .catch((err) => {
+                if (err) next(err);
+            });
     }
 });
 

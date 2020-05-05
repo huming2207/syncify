@@ -18,6 +18,7 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
+                    description: 'List a directory',
                     querystring: { path: { type: 'string', pattern: '^\/' } } // prettier-ignore
                 },
             },
@@ -28,7 +29,9 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
+                    description: 'Create a directory',
                     body: PathQuerySchema,
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.createDirectory,
@@ -38,6 +41,7 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
+                    description: 'Move or copy a directory',
                     body: {
                         type: 'object',
                         properties: {
@@ -46,6 +50,7 @@ export class PathController extends BaseController {
                             move: { type: 'boolean' },
                         },
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.copyMoveDirectory,
@@ -55,7 +60,9 @@ export class PathController extends BaseController {
             '/path',
             {
                 schema: {
+                    description: 'Delete a directory',
                     body: PathQuerySchema,
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.deleteDirectory,

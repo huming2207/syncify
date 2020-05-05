@@ -6,6 +6,7 @@ import { AuthController } from './controllers/endpoints/AuthController';
 import FastifySwagger from 'fastify-swagger';
 import { UserFormSchema } from './common/schemas/UserFormSchema';
 import { PathQuerySchema } from './common/schemas/PathQuerySchema';
+import { ErrorHandler } from './controllers/middleware/ErrorHandler';
 
 require('dotenv').config();
 
@@ -21,7 +22,6 @@ server.register(FastifySwagger, {
             description: 'Cloud Computing Assignment 2',
             version: '0.0.2',
         },
-        consumes: ['application/x-www-form-urlencoded'],
         produces: ['application/json'],
         definitions: { UserFormSchema, PathQuerySchema },
     },
@@ -29,6 +29,7 @@ server.register(FastifySwagger, {
 
 server.register(new AuthController().bootstrap, prefix);
 server.register(new ProtectedMiddleware().bootstrap, prefix);
+server.setErrorHandler(ErrorHandler);
 
 connectToDb()
     .then(() => {

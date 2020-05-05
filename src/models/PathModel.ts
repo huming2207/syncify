@@ -1,6 +1,6 @@
 import { UserDoc } from './UserModel';
 import { Document, Schema, model, HookNextFunction } from 'mongoose';
-import File, { FileDoc } from './FileModel';
+import { FileDoc } from './FileModel';
 
 export interface PathDoc extends Document {
     owner: UserDoc;
@@ -18,11 +18,13 @@ export const PathSchema = new Schema({
 
 PathSchema.pre<PathDoc>('find', function (next: HookNextFunction) {
     this.populate('childrenPath');
+    this.populate('files');
     next();
 });
 
 PathSchema.pre<PathDoc>('findOne', function (next: HookNextFunction) {
     this.populate('childrenPath');
+    this.populate('files');
     next();
 });
 
@@ -37,11 +39,13 @@ PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
     });
 
     // Also remove files, if it has any
-    if (this.files.length > 0) {
-        File.deleteMany({ _id: { $in: this.files } }).catch((err) => {
-            if (err) next(err);
-        });
-    }
+    this.files.forEach(async (element: FileDoc) => {
+        try {
+            await element.remove();
+        } catch (err) {
+            next(err);
+        }
+    });
 
     next();
 });

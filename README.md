@@ -18,7 +18,7 @@ By Jackson Ming Hu (s3554025) and Tein Hwlar Phyu (s3734613), for RMIT [Cloud Co
 3. Run `npm run debug`
 4. Have fun
 
-## API Reference (TBD)
 
-Go to [http://127.0.0.1:3000/api/documentation](http://127.0.0.1:3000/api/documentation) for Swagger Web UI.
+## Documentation
 
+See `doc` folder
