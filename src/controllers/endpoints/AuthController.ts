@@ -21,6 +21,7 @@ export class AuthController extends BaseController {
                 schema: {
                     body: UserFormSchema,
                     consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
                     description: 'Register a new user',
                 },
             },
@@ -33,6 +34,7 @@ export class AuthController extends BaseController {
                 schema: {
                     body: UserFormSchema,
                     consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
                     description: 'User login, and get a new JWT token',
                 },
             },

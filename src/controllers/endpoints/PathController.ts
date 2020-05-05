@@ -19,7 +19,8 @@ export class PathController extends BaseController {
             {
                 schema: {
                     description: 'List a directory',
-                    querystring: { path: { type: 'string', pattern: '^\/' } } // prettier-ignore
+                    querystring: { path: { type: 'string', pattern: '^\/' } }, // prettier-ignore
+                    security: [{ JWT: [] }],
                 },
             },
             this.listDirectory,
@@ -32,6 +33,8 @@ export class PathController extends BaseController {
                     description: 'Create a directory',
                     body: PathQuerySchema,
                     consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
                 },
             },
             this.createDirectory,
@@ -51,6 +54,8 @@ export class PathController extends BaseController {
                         },
                     },
                     consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
                 },
             },
             this.copyMoveDirectory,
@@ -63,6 +68,8 @@ export class PathController extends BaseController {
                     description: 'Delete a directory',
                     body: PathQuerySchema,
                     consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
                 },
             },
             this.deleteDirectory,

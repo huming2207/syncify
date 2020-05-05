@@ -25,6 +25,8 @@ export class UserController extends BaseController {
                         required: ['password'],
                     },
                     consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
                 },
             },
             this.changePassword,
