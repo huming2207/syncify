@@ -30,6 +30,7 @@ export class FileController extends BaseController {
                             file: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
+                    security: [{ JWT: [] }],
                 },
             },
             this.getFile,
@@ -49,6 +50,7 @@ export class FileController extends BaseController {
                     },
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
+                    security: [{ JWT: [] }],
                 },
             },
             this.moveFile,
@@ -67,6 +69,7 @@ export class FileController extends BaseController {
                     },
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
+                    security: [{ JWT: [] }],
                 },
             },
             this.removeFile,

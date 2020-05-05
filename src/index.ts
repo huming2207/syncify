@@ -24,6 +24,13 @@ server.register(FastifyOas, {
         },
         produces: ['application/json'],
         definitions: { UserFormSchema, PathQuerySchema },
+        securityDefinitions: {
+            JWT: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+            },
+        },
     },
 });
 
