@@ -16,6 +16,7 @@ export class UserController extends BaseController {
             '/user/password',
             {
                 schema: {
+                    description: 'Change password',
                     body: {
                         type: 'object',
                         properties: {

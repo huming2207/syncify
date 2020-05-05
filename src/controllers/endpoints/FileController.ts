@@ -23,6 +23,7 @@ export class FileController extends BaseController {
             '/file',
             {
                 schema: {
+                    description: 'Provide a file path to get a file',
                     querystring: {
                         type: 'object',
                         properties: {
@@ -38,6 +39,7 @@ export class FileController extends BaseController {
             '/file',
             {
                 schema: {
+                    description: 'Move a file from an old path to a new path',
                     body: {
                         type: 'object',
                         properties: {
@@ -55,6 +57,7 @@ export class FileController extends BaseController {
             '/file',
             {
                 schema: {
+                    description: 'Delete a file based on the path provided',
                     body: {
                         type: 'object',
                         properties: {
