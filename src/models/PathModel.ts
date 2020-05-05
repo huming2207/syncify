@@ -1,6 +1,6 @@
 import { UserDoc } from './UserModel';
 import { Document, Schema, model, HookNextFunction } from 'mongoose';
-import File, { FileDoc } from './FileModel';
+import { FileDoc } from './FileModel';
 
 export interface PathDoc extends Document {
     owner: UserDoc;

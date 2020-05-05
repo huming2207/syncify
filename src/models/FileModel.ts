@@ -1,5 +1,4 @@
 import { Types, Document, Schema, model, HookNextFunction } from 'mongoose';
-import mongodb from 'mongodb';
 import { UserDoc } from './UserModel';
 import { PathDoc } from './PathModel';
 import { StorageService, StorageBucketName } from '../services/storage/StorageService';
