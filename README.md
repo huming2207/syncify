@@ -21,4 +21,4 @@ By Jackson Ming Hu (s3554025) and Tein Hwlar Phyu (s3734613), for RMIT [Cloud Co
 
 ## Documentation
 
-See `doc` folder
+See [documentation folder](doc/README.md)

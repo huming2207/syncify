@@ -3,7 +3,7 @@ import fastify from 'fastify';
 import { connectToDb } from './common/Database';
 import { ProtectedMiddleware } from './controllers/middleware/ProtectedMiddleware';
 import { AuthController } from './controllers/endpoints/AuthController';
-import FastifySwagger from 'fastify-swagger';
+import FastifyOas from 'fastify-oas';
 import { UserFormSchema } from './common/schemas/UserFormSchema';
 import { PathQuerySchema } from './common/schemas/PathQuerySchema';
 import { ErrorHandler } from './controllers/middleware/ErrorHandler';
@@ -13,7 +13,7 @@ require('dotenv').config();
 const server = fastify();
 const prefix = { prefix: '/api' };
 
-server.register(FastifySwagger, {
+server.register(FastifyOas, {
     routePrefix: '/api/documentation',
     exposeRoute: true,
     swagger: {
@@ -47,7 +47,7 @@ connectToDb()
                         console.error(err);
                         process.exit(1);
                     }
-                    server.swagger();
+                    server.oas();
                 });
                 console.log(`Fastify is listening at ${address}`);
             },
