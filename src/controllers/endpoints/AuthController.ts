@@ -20,6 +20,7 @@ export class AuthController extends BaseController {
             {
                 schema: {
                     body: UserFormSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.register,
@@ -30,6 +31,7 @@ export class AuthController extends BaseController {
             {
                 schema: {
                     body: UserFormSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.login,

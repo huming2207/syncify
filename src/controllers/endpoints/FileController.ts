@@ -26,7 +26,7 @@ export class FileController extends BaseController {
                     querystring: {
                         type: 'object',
                         properties: {
-                            path: { type: 'string', pattern: '^\/' } // prettier-ignore
+                            file: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
                 },
@@ -45,6 +45,7 @@ export class FileController extends BaseController {
                             new: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.moveFile,
@@ -60,6 +61,7 @@ export class FileController extends BaseController {
                             file: { type: 'string', pattern: '^\/' } // prettier-ignore
                         },
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.removeFile,

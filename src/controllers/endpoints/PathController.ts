@@ -29,6 +29,7 @@ export class PathController extends BaseController {
             {
                 schema: {
                     body: PathQuerySchema,
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.createDirectory,
@@ -46,6 +47,7 @@ export class PathController extends BaseController {
                             move: { type: 'boolean' },
                         },
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.copyMoveDirectory,
@@ -56,6 +58,7 @@ export class PathController extends BaseController {
             {
                 schema: {
                     body: PathQuerySchema,
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.deleteDirectory,

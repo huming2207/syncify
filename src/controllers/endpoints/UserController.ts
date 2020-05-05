@@ -23,6 +23,7 @@ export class UserController extends BaseController {
                         },
                         required: ['password'],
                     },
+                    consumes: ['application/x-www-form-urlencoded'],
                 },
             },
             this.changePassword,

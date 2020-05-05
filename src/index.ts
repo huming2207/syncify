@@ -22,7 +22,6 @@ server.register(FastifySwagger, {
             description: 'Cloud Computing Assignment 2',
             version: '0.0.2',
         },
-        consumes: ['application/x-www-form-urlencoded'],
         produces: ['application/json'],
         definitions: { UserFormSchema, PathQuerySchema },
     },
