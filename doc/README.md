@@ -18,7 +18,7 @@
 
 ## API Reference
 
-There are two types of 
+There are two types of API reference to use. Swagger is suggested as it's more up-to-date.
 
 ### Swagger
 
