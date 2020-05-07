@@ -5,7 +5,7 @@ import User, { UserDoc } from '../../models/UserModel';
 import Path from '../../models/PathModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
-import { InternalError, UnauthorisedError } from '../../common/Errors';
+import { InternalError, UnauthorisedError, BadRequestError } from '../../common/Errors';
 import { UserFormSchema } from '../../common/schemas/UserFormSchema';
 
 export class AuthController extends BaseController {
@@ -48,22 +48,21 @@ export class AuthController extends BaseController {
         const password = req.body['password'] as string;
         const email = req.body['email'] as string;
 
-        const createdUser = await User.create({
-            username,
-            password: await argon2.hash(password),
-            email,
-        });
-
-        if (!createdUser) throw new InternalError('Failed to create user');
-
-        const createdPath = await Path.create({
-            owner: createdUser,
-            name: '',
-        });
-
-        if (!createdPath) throw new InternalError('Failed to create root path');
-
         try {
+            const createdUser = await User.create({
+                username,
+                password: await argon2.hash(password),
+                email,
+            });
+
+            const createdPath = await Path.create({
+                owner: createdUser,
+                name: '',
+            });
+
+            if (!createdUser) throw new InternalError('Failed to create user');
+            if (!createdPath) throw new InternalError('Failed to create root path');
+
             createdUser.rootPath = createdPath;
             await createdUser.save();
 
@@ -76,10 +75,12 @@ export class AuthController extends BaseController {
                 },
             });
         } catch (err) {
-            reply.code(500).send({
-                message: 'Failed to create user',
-                data: err,
-            });
+            const msg: string = err.message;
+            if (msg.includes('duplicate key')) {
+                throw new BadRequestError('User already exists, try another username/email');
+            } else {
+                throw err;
+            }
         }
     };
 
