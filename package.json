@@ -30,6 +30,7 @@
     "jsonwebtoken": "^8.5.1",
     "minio": "^7.0.16",
     "mongoose": "^5.9.12",
+    "pino-pretty": "^4.0.0",
     "stream-meter": "^1.0.4",
     "ts-jest": "^25.4.0",
     "ts-node": "^8.10.1",
