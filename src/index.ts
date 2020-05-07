@@ -4,7 +4,7 @@ import { connectToDb } from './common/Database';
 import { ProtectedMiddleware } from './controllers/middleware/ProtectedMiddleware';
 import { AuthController } from './controllers/endpoints/AuthController';
 import FastifyOas from 'fastify-oas';
-import { UserFormSchema } from './common/schemas/UserFormSchema';
+import { LoginFormSchema, RegisterFormSchema } from './common/schemas/UserFormSchema';
 import { PathQuerySchema } from './common/schemas/PathQuerySchema';
 import { ErrorHandler } from './controllers/middleware/ErrorHandler';
 
@@ -28,8 +28,7 @@ server.register(FastifyOas, {
             description: 'Cloud Computing Assignment 2',
             version: '0.1.0',
         },
-        produces: ['application/json'],
-        definitions: { UserFormSchema, PathQuerySchema },
+        definitions: { LoginFormSchema, RegisterFormSchema, PathQuerySchema },
         securityDefinitions: {
             JWT: {
                 type: 'http',

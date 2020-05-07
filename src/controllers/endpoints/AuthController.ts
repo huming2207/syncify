@@ -6,7 +6,7 @@ import Path from '../../models/PathModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { InternalError, UnauthorisedError, BadRequestError } from '../../common/Errors';
-import { UserFormSchema } from '../../common/schemas/UserFormSchema';
+import { LoginFormSchema, RegisterFormSchema } from '../../common/schemas/UserFormSchema';
 
 export class AuthController extends BaseController {
     public bootstrap = (
@@ -19,7 +19,7 @@ export class AuthController extends BaseController {
             '/auth/register',
             {
                 schema: {
-                    body: UserFormSchema,
+                    body: RegisterFormSchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     description: 'Register a new user',
@@ -32,7 +32,7 @@ export class AuthController extends BaseController {
             '/auth/login',
             {
                 schema: {
-                    body: UserFormSchema,
+                    body: LoginFormSchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     description: 'User login, and get a new JWT token',
