@@ -91,7 +91,7 @@ export class AuthController extends BaseController {
         let user: UserDoc | null;
         try {
             user = await User.findOne({ $or: [{ username }, { email: username }] });
-            if (!user || !argon2.verify(user.password, password)) {
+            if (!user || !(await argon2.verify(user.password, password))) {
                 throw new UnauthorisedError('Username or password is incorrect, try again');
             }
 
