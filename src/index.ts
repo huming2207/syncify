@@ -10,7 +10,13 @@ import { ErrorHandler } from './controllers/middleware/ErrorHandler';
 
 require('dotenv').config();
 
-const server = fastify();
+const server = fastify({
+    logger: {
+        level: process.env.SYNCIFY_LOG_LEVEL ? process.env.PP_LOG_LEVEL : 'warn',
+        prettyPrint: process.env.SYNCIFY_LOG_PRETTY === 'true' ? { colorize: true } : false,
+        sync: process.env.SYNCIFY_LOG_SYNC === 'true',
+    },
+});
 const prefix = { prefix: '/api' };
 
 server.register(FastifyOas, {
