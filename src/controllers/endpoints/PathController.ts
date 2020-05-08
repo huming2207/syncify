@@ -5,7 +5,6 @@ import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
 import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
-import PathModel from '../../models/PathModel';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -125,13 +124,14 @@ export class PathController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Cannot load current user');
         const pathName = req.query['path'] as string;
-        const pathArr = pathName.split('/').splice(1);
 
         let parentPath = user.rootPath;
+
         // If it's the root directory, skip the BFS
-        if (pathArr.length !== 1 || pathArr[0] !== '') {
+        if (pathName !== '/') {
             // Do a BFS here to iterate a path tree.
             // If a path name is matched, continue; otherwise, return 404.
+            const pathArr = pathName.split('/').splice(1);
             for (const pathItem of pathArr) {
                 await parentPath.populate('childrenPath').execPopulate();
                 const childPath = parentPath.childrenPath.filter(

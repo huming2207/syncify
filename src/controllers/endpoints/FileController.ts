@@ -157,21 +157,29 @@ export class FileController extends BaseController {
             async (err) => {
                 if (err) throw new BadRequestError(`Failed to upload: ${err}`);
                 const path = req.query['path'] as string;
-                const pathArr = path.split('/').splice(1);
 
                 // Do a BFS here to iterate a path tree.
                 // If a path name is matched, continue; otherwise, return 404.
+                // If the path is the root path, skip the BFS.
                 let currPath = user.rootPath;
-                for (const pathItem of pathArr) {
-                    await currPath.populate('childrenPath').execPopulate();
-                    const childPath = currPath.childrenPath.filter(
-                        (element) => element.name === pathItem,
-                    );
+                if (path !== '/') {
+                    const pathArr = path.split('/').splice(1);
+                    for (const pathItem of pathArr) {
+                        await currPath.populate('childrenPath').execPopulate();
+                        const childPath = currPath.childrenPath.filter(
+                            (element) => element.name === pathItem,
+                        );
 
-                    if (childPath.length < 1) {
-                        throw new NotFoundError('Directory does not exist');
-                    } else {
-                        currPath = childPath[0];
+                        if (childPath.length < 1) {
+                            reply.code(404).send({
+                                message: 'Directory does not exist',
+                                data: {
+                                    id: oid,
+                                },
+                            });
+                        } else {
+                            currPath = childPath[0];
+                        }
                     }
                 }
 
