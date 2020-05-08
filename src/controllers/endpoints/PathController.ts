@@ -5,6 +5,7 @@ import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
 import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
+import PathModel from '../../models/PathModel';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -87,24 +88,33 @@ export class PathController extends BaseController {
 
         // Do a BFS here to iterate a path tree.
         // If a path name is matched, set to the next iteration. If not, then create it.
-        let parentPath = user.rootPath;
-        for (const [idx, pathItem] of pathToCreate.entries()) {
-            const childPath = parentPath.childrenPath.filter(
-                (element) => element.name === pathItem,
-            );
+        try {
+            let parentPath = user.rootPath;
+            for (const [idx, pathItem] of pathToCreate.entries()) {
+                await parentPath.populate('childrenPath').execPopulate();
+                const childPath = parentPath.childrenPath.filter(
+                    (element) => element.name === pathItem,
+                );
 
-            if (childPath.length < 1) {
-                const newPath = await Path.create({ name: pathItem, owner: user });
-                await Path.updateOne({ _id: parentPath._id }, { $push: { childrenPath: newPath } });
-                parentPath = newPath;
-            } else {
-                parentPath = childPath[0];
+                if (childPath.length < 1) {
+                    const newPath = await Path.create({ name: pathItem, owner: user });
+                    await Path.updateOne(
+                        { _id: parentPath._id },
+                        { $push: { childrenPath: newPath } },
+                    );
+                    parentPath = newPath;
+                } else {
+                    parentPath = childPath[0];
 
-                // If there is nothing created for the last item, then this path must have been created before.
-                if (idx === pathToCreate.length - 1) {
-                    throw new BadRequestError('Directory already exists!');
+                    // If there is nothing created for the last item, then this path must have been created before.
+                    if (idx === pathToCreate.length - 1) {
+                        throw new BadRequestError('Directory already exists!');
+                    }
                 }
             }
+        } catch (err) {
+            if (!err.statusCode) throw new InternalError('Failed to create directory');
+            else throw err;
         }
 
         reply.code(200).send({ message: 'Directory created!', data: pathToCreate });
@@ -117,22 +127,32 @@ export class PathController extends BaseController {
         const pathName = req.query['path'] as string;
         const pathArr = pathName.split('/').splice(1);
 
-        // Do a BFS here to iterate a path tree.
-        // If a path name is matched, continue; otherwise, return 404.
         let parentPath = user.rootPath;
-        for (const pathItem of pathArr) {
-            const childPath = parentPath.childrenPath.filter(
-                (element) => element.name === pathItem,
-            );
+        // If it's the root directory, skip the BFS
+        if (pathArr.length !== 1 || pathArr[0] !== '') {
+            // Do a BFS here to iterate a path tree.
+            // If a path name is matched, continue; otherwise, return 404.
+            for (const pathItem of pathArr) {
+                await parentPath.populate('childrenPath').execPopulate();
+                const childPath = parentPath.childrenPath.filter(
+                    (element) => element.name === pathItem,
+                );
 
-            if (childPath.length < 1) {
-                throw new NotFoundError('Directory does not exist');
-            } else {
-                parentPath = childPath[0];
+                if (childPath.length < 1) {
+                    throw new NotFoundError('Directory does not exist');
+                } else {
+                    parentPath = childPath[0];
+                }
             }
         }
 
-        await parentPath.populate('owner').populate('files').execPopulate();
+        if (!parentPath) throw new NotFoundError('Directory does not exist');
+
+        await parentPath
+            .populate('owner')
+            .populate('files', '_id name size type owner created updated')
+            .populate('childrenPath', '_id name owner created updated')
+            .execPopulate();
 
         reply.code(200).send({
             msg: '',
@@ -165,6 +185,7 @@ export class PathController extends BaseController {
         // If a path name is matched, continue; otherwise, return 404.
         let currPath = user.rootPath;
         for (const pathItem of pathArr) {
+            await currPath.populate('childrenPath').execPopulate();
             const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
 
             if (childPath.length < 1) {
@@ -175,7 +196,8 @@ export class PathController extends BaseController {
         }
 
         try {
-            await currPath.remove();
+            console.log(currPath);
+            await Path.findByIdAndRemove(currPath.id);
             reply.code(200).send({ message: 'Directory deleted', data: null });
         } catch (err) {
             throw new InternalError('Failed to perform deletion');

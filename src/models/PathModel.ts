@@ -21,19 +21,20 @@ export const PathSchema = new Schema({
 });
 
 PathSchema.pre<PathDoc>('find', function (next: HookNextFunction) {
-    this.populate('childrenPath');
-    this.populate('files');
+    // this.populate('childrenPath');
+    // this.populate('files');
     next();
 });
 
 PathSchema.pre<PathDoc>('findOne', function (next: HookNextFunction) {
-    this.populate('childrenPath');
-    this.populate('files');
+    // this.populate('childrenPath');
+    // this.populate('files');
     next();
 });
 
 PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
     // Remove children path
+    this.populate('childrenPath');
     this.childrenPath.forEach(async (element: PathDoc) => {
         try {
             await element.remove();
@@ -43,6 +44,7 @@ PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
     });
 
     // Also remove files, if it has any
+    this.populate('files');
     this.files.forEach(async (element: FileDoc) => {
         try {
             await element.remove();

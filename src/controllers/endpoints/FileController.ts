@@ -94,6 +94,7 @@ export class FileController extends BaseController {
         let currPath = user.rootPath;
         let fileName = '';
         for (const [idx, pathItem] of pathArr.entries()) {
+            await currPath.populate('childrenPath').execPopulate();
             const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
             if (idx === pathArr.length - 1) {
                 fileName = pathItem;
@@ -162,6 +163,7 @@ export class FileController extends BaseController {
                 // If a path name is matched, continue; otherwise, return 404.
                 let currPath = user.rootPath;
                 for (const pathItem of pathArr) {
+                    await currPath.populate('childrenPath').execPopulate();
                     const childPath = currPath.childrenPath.filter(
                         (element) => element.name === pathItem,
                     );
@@ -221,6 +223,7 @@ export class FileController extends BaseController {
         let currPath = user.rootPath;
         let fileName = '';
         for (const [idx, pathItem] of pathArr.entries()) {
+            await currPath.populate('childrenPath').execPopulate();
             const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
             if (idx === pathArr.length - 1) {
                 fileName = pathItem;
