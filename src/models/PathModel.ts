@@ -6,6 +6,8 @@ export interface PathDoc extends Document {
     owner: UserDoc;
     childrenPath: PathDoc[];
     name: string;
+    created: Date;
+    updated: Date;
     files: FileDoc[];
 }
 
@@ -13,6 +15,8 @@ export const PathSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'User' },
     childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
     name: { type: String },
+    created: { type: Date, default: Date.now },
+    updated: { type: Date, default: Date.now },
     files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
 });
 
