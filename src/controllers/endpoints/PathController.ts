@@ -197,7 +197,7 @@ export class PathController extends BaseController {
 
         try {
             console.log(currPath);
-            await Path.findByIdAndRemove(currPath.id);
+            await currPath.remove();
             reply.code(200).send({ message: 'Directory deleted', data: null });
         } catch (err) {
             throw new InternalError('Failed to perform deletion');
