@@ -10,6 +10,7 @@ import { NotFoundError, BadRequestError, InternalError } from '../../common/Erro
 import { Readable } from 'stream';
 import StreamMeter from 'stream-meter';
 import { StorageService, StorageBucketName } from '../../services/storage/StorageService';
+import { CopyMoveSchema } from '../../common/schemas/CopyMoveSchema';
 
 export class FileController extends BaseController {
     private storage: StorageService = StorageService.getInstance();
@@ -37,17 +38,25 @@ export class FileController extends BaseController {
         );
 
         instance.put(
-            '/file',
+            '/file/move',
             {
                 schema: {
-                    description: 'Move a file from an old path to a new path',
-                    body: {
-                        type: 'object',
-                        properties: {
-                            old: { type: 'string', pattern: '^\//' }, // prettier-ignore
-                            new: { type: 'string', pattern: '^\/' } // prettier-ignore
-                        },
-                    },
+                    description: 'Move a file',
+                    body: CopyMoveSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                },
+            },
+            this.moveFile,
+        );
+
+        instance.put(
+            '/file/copy',
+            {
+                schema: {
+                    description: 'Duplicate a file',
+                    body: CopyMoveSchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],

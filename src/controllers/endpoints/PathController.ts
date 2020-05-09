@@ -5,6 +5,7 @@ import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
 import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
+import { CopyMoveSchema } from '../../common/schemas/CopyMoveSchema';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -41,24 +42,31 @@ export class PathController extends BaseController {
         );
 
         instance.put(
-            '/path',
+            '/path/copy',
             {
                 schema: {
-                    description: 'Move or copy a directory',
-                    body: {
-                        type: 'object',
-                        properties: {
-                            oldPath: { type: 'string', pattern: '^\/' }, // prettier-ignore
-                            newPath: { type: 'string', pattern: '^\/' }, // prettier-ignore
-                            move: { type: 'boolean' },
-                        },
-                    },
+                    description: 'Copy a directory',
+                    body: CopyMoveSchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
                 },
             },
-            this.copyMoveDirectory,
+            this.copyDirectory,
+        );
+
+        instance.put(
+            '/path/move',
+            {
+                schema: {
+                    description: 'Copy a directory',
+                    body: CopyMoveSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                },
+            },
+            this.moveDirectory,
         );
 
         instance.delete(
@@ -170,7 +178,11 @@ export class PathController extends BaseController {
         });
     };
 
-    private copyMoveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+    private copyDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        return;
+    };
+
+    private moveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         return;
     };
 
