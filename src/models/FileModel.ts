@@ -10,6 +10,8 @@ export interface FileDoc extends Document {
     name: string;
     owner: UserDoc;
     path: PathDoc;
+    created: Date;
+    updated: Date;
     storageId: Types.ObjectId;
 }
 
@@ -20,6 +22,8 @@ export const FileSchema = new Schema({
     name: { type: String },
     owner: { type: Types.ObjectId, ref: 'User' },
     path: { type: Types.ObjectId, ref: 'Path' },
+    created: { type: Date, default: Date.now },
+    updated: { type: Date, default: Date.now },
     storageId: { type: Types.ObjectId },
 });
 
