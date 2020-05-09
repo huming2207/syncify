@@ -47,7 +47,7 @@
     "@types/json-schema": "7.0.4",
     "@types/jsonwebtoken": "8.3.9",
     "@types/minio": "7.0.5",
-    "@types/mongoose": "5.7.15",
+    "@types/mongoose": "5.7.16",
     "@types/node": "13.13.5",
     "@types/stream-meter": "0.0.22",
     "@typescript-eslint/eslint-plugin": "2.31.0",
