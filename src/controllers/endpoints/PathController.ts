@@ -213,7 +213,9 @@ export class PathController extends BaseController {
         const origPathParent = origPathName.substring(0, origPathName.lastIndexOf('/'));
         const destPathParent = destPathName.substring(0, destPathName.lastIndexOf('/'));
         if (origPathParent === destPathParent) {
-            await Path.updateOne(origPath, { name: destPathParent.substring(1) });
+            await Path.updateOne(origPath, {
+                name: destPathName.substring(destPathName.lastIndexOf('/') + 1),
+            });
             reply.code(200).send({ message: 'Directory renamed', data: null });
         } else {
             const destPathArr = destPathName.split('/').splice(1);
