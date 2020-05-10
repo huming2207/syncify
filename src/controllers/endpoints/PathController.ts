@@ -3,7 +3,12 @@ import User from '../../models/UserModel';
 import Path, { PathDoc } from '../../models/PathModel';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
-import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
+import {
+    NotFoundError,
+    BadRequestError,
+    InternalError,
+    UnauthorisedError,
+} from '../../common/Errors';
 import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
 import { CopyMoveSchema } from '../../common/schemas/CopyMoveSchema';
 
@@ -90,7 +95,7 @@ export class PathController extends BaseController {
     private createDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.body['path'] as string;
         const pathToCreate = pathName.split('/').splice(1);
 
@@ -131,7 +136,7 @@ export class PathController extends BaseController {
     private listDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.query['path'] as string;
 
         let parentPath = user.rootPath;
@@ -203,7 +208,7 @@ export class PathController extends BaseController {
     private moveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const origPathName = req.body['orig'] as string;
         const origPath = await this.traversePathTree(user.rootPath, origPathName);
 
@@ -245,7 +250,7 @@ export class PathController extends BaseController {
     private deleteDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.body['path'] as string;
         if (pathName === '/') throw new BadRequestError('Cannot delete root directory!');
 

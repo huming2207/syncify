@@ -6,7 +6,12 @@ import mongodb from 'mongodb';
 import File from '../../models/FileModel';
 import User from '../../models/UserModel';
 import Path from '../../models/PathModel';
-import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
+import {
+    NotFoundError,
+    BadRequestError,
+    InternalError,
+    UnauthorisedError,
+} from '../../common/Errors';
 import { Readable } from 'stream';
 import StreamMeter from 'stream-meter';
 import { StorageService, StorageBucketName } from '../../services/storage/StorageService';
@@ -137,7 +142,7 @@ export class FileController extends BaseController {
     private uploadFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Failed to find the user');
+        if (!user) throw new UnauthorisedError('Failed to find the user');
         if (!req.isMultipart()) throw new BadRequestError('Request is not a Multipart');
 
         // Parse size from Content-Length
@@ -231,7 +236,7 @@ export class FileController extends BaseController {
     private removeFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Failed to find the user');
+        if (!user) throw new UnauthorisedError('Failed to find the user');
 
         const path = req.body['file'] as string;
         let pathArr = [''];
