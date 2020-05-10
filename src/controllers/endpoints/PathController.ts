@@ -199,7 +199,40 @@ export class PathController extends BaseController {
     };
 
     private moveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
-        return;
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new NotFoundError('Cannot load current user');
+        const origPathName = req.body['orig'] as string;
+        const origPathArr = origPathName.split('/').splice(1);
+        const origPath = await this.traversePathTree(user.rootPath, origPathArr);
+
+        const destPathName = req.body['dest'] as string;
+
+        // If orig and dest have the same parent, then rename orig to dest (like in linux: "mv /home/xyz/foo /home/xyz/bar")
+        // Or otherwise, do the real move
+        const origPathParent = origPathName.substring(0, origPathName.lastIndexOf('/'));
+        const destPathParent = destPathName.substring(0, destPathName.lastIndexOf('/'));
+        if (origPathParent === destPathParent) {
+            await Path.updateOne(origPath, { name: destPathParent.substring(1) });
+            reply.code(200).send({ message: 'Directory renamed', data: null });
+        } else {
+            const destPathArr = destPathName.split('/').splice(1);
+            const destPath = await this.traversePathTree(user.rootPath, destPathArr);
+
+            // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
+            if (!origPath.parentPath) throw new BadRequestError('Root path cannot be moved');
+
+            // Remove orig's parent's child field
+            await Path.updateOne(origPath.parentPath, {
+                $pull: { childrenPath: { id: origPath.id } },
+            });
+
+            // Add orig to dest
+            await Path.updateOne(destPath, { $push: { childrenPath: origPath } });
+            await Path.updateOne(origPath, { parentPath: destPath });
+
+            reply.code(200).send({ message: 'Directory moved', data: null });
+        }
     };
 
     private deleteDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
