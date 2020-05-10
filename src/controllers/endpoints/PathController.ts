@@ -247,6 +247,8 @@ export class PathController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Cannot load current user');
         const pathName = req.body['path'] as string;
+        if (pathName === '/') throw new BadRequestError('Cannot delete root directory!');
+
         const currPath = await this.traversePathTree(user.rootPath, pathName);
 
         try {
