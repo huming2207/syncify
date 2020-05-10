@@ -62,7 +62,7 @@ export class FileController extends BaseController {
                     security: [{ JWT: [] }],
                 },
             },
-            this.moveFile,
+            this.copyFile,
         );
 
         instance.delete(
@@ -218,6 +218,10 @@ export class FileController extends BaseController {
                 },
             },
         );
+    };
+
+    private copyFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        return;
     };
 
     private moveFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {

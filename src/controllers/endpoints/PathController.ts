@@ -1,6 +1,6 @@
 import { BaseController } from '../BaseController';
 import User from '../../models/UserModel';
-import Path from '../../models/PathModel';
+import Path, { PathDoc } from '../../models/PathModel';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
 import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
@@ -21,6 +21,7 @@ export class PathController extends BaseController {
                 schema: {
                     description: 'List a directory',
                     querystring: { path: { type: 'string', pattern: '^\/' } }, // prettier-ignore
+                    produces: ['application/json'],
                     security: [{ JWT: [] }],
                 },
             },
@@ -104,7 +105,7 @@ export class PathController extends BaseController {
                 );
 
                 if (childPath.length < 1) {
-                    const newPath = await Path.create({ name: pathItem, owner: user });
+                    const newPath = await Path.create({ name: pathItem, owner: user, parentPath });
                     await Path.updateOne(
                         { _id: parentPath._id },
                         { $push: { childrenPath: newPath } },
@@ -178,6 +179,21 @@ export class PathController extends BaseController {
         });
     };
 
+    private traversePathTree = async (root: PathDoc, pathArr: string[]): Promise<PathDoc> => {
+        let currPath = root;
+        for (const pathItem of pathArr) {
+            await currPath.populate('childrenPath').execPopulate();
+            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
+
+            if (childPath.length < 1) {
+                throw new NotFoundError('Directory does not exist');
+            } else {
+                currPath = childPath[0];
+            }
+        }
+        return currPath;
+    };
+
     private copyDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         return;
     };
@@ -193,19 +209,7 @@ export class PathController extends BaseController {
         const pathName = req.body['path'] as string;
         const pathArr = pathName.split('/').splice(1);
 
-        // Do a BFS here to iterate a path tree.
-        // If a path name is matched, continue; otherwise, return 404.
-        let currPath = user.rootPath;
-        for (const pathItem of pathArr) {
-            await currPath.populate('childrenPath').execPopulate();
-            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
-
-            if (childPath.length < 1) {
-                throw new NotFoundError('Directory does not exist');
-            } else {
-                currPath = childPath[0];
-            }
-        }
+        const currPath = await this.traversePathTree(user.rootPath, pathArr);
 
         try {
             console.log(currPath);
