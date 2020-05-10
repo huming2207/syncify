@@ -5,6 +5,7 @@ import { FileDoc } from './FileModel';
 export interface PathDoc extends Document {
     owner: UserDoc;
     childrenPath: PathDoc[];
+    parentPath: PathDoc;
     name: string;
     created: Date;
     updated: Date;
@@ -14,6 +15,7 @@ export interface PathDoc extends Document {
 export const PathSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'User' },
     childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
+    parentPath: { type: Schema.Types.ObjectId, ref: 'Path' },
     name: { type: String },
     created: { type: Date, default: Date.now },
     updated: { type: Date, default: Date.now },
