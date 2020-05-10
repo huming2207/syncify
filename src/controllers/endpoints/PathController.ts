@@ -179,7 +179,9 @@ export class PathController extends BaseController {
         });
     };
 
-    private traversePathTree = async (root: PathDoc, pathArr: string[]): Promise<PathDoc> => {
+    private traversePathTree = async (root: PathDoc, path: string): Promise<PathDoc> => {
+        if (path === '/') return root;
+        const pathArr = path.split('/').splice(1);
         let currPath = root;
         for (const pathItem of pathArr) {
             await currPath.populate('childrenPath').execPopulate();
@@ -203,8 +205,7 @@ export class PathController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Cannot load current user');
         const origPathName = req.body['orig'] as string;
-        const origPathArr = origPathName.split('/').splice(1);
-        const origPath = await this.traversePathTree(user.rootPath, origPathArr);
+        const origPath = await this.traversePathTree(user.rootPath, origPathName);
 
         const destPathName = req.body['dest'] as string;
 
@@ -218,18 +219,22 @@ export class PathController extends BaseController {
             });
             reply.code(200).send({ message: 'Directory renamed', data: null });
         } else {
-            const destPathArr = destPathName.split('/').splice(1);
-            const destPath = await this.traversePathTree(user.rootPath, destPathArr);
+            const destPath = await this.traversePathTree(user.rootPath, destPathName);
 
             // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
-            if (!origPath.parentPath) throw new BadRequestError('Root path cannot be moved');
+            await origPath.populate('parentPath').execPopulate();
+            const parentPath = origPath.parentPath;
+            if (!parentPath) throw new BadRequestError('Root path cannot be moved');
+            console.log(parentPath);
 
             // Remove orig's parent's child field
-            await Path.updateOne(origPath.parentPath, {
+            await parentPath.populate('childrenPath').execPopulate();
+            await Path.updateOne(parentPath, {
                 $pull: { childrenPath: { id: origPath.id } },
             });
 
             // Add orig to dest
+            await destPath.populate('childrenPath').execPopulate();
             await Path.updateOne(destPath, { $push: { childrenPath: origPath } });
             await Path.updateOne(origPath, { parentPath: destPath });
 
@@ -242,9 +247,7 @@ export class PathController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new NotFoundError('Cannot load current user');
         const pathName = req.body['path'] as string;
-        const pathArr = pathName.split('/').splice(1);
-
-        const currPath = await this.traversePathTree(user.rootPath, pathArr);
+        const currPath = await this.traversePathTree(user.rootPath, pathName);
 
         try {
             console.log(currPath);
