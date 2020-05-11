@@ -28,6 +28,12 @@ server.register(FastifyOas, {
             description: 'Cloud Computing Assignment 2',
             version: '0.1.0',
         },
+        servers: [
+            {
+                url: 'http://127.0.0.1:3000',
+                description: 'Dev server',
+            },
+        ],
         definitions: { LoginFormSchema, RegisterFormSchema, PathQuerySchema },
         securityDefinitions: {
             JWT: {
