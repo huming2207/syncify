@@ -210,6 +210,47 @@ export class FileController extends BaseController {
     };
 
     private copyFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new UnauthorisedError('Cannot load current user');
+        const origPathName = req.body['orig'] as string;
+        const origPath = await traversePathTree(
+            user.rootPath,
+            origPathName.substring(0, origPathName.lastIndexOf('/')), // Get the path without the file, e.g. /home/test/foo.txt => /home/test
+        );
+
+        const destPathName = req.body['dest'] as string;
+        const destPath = await traversePathTree(user.rootPath, destPathName);
+        const file = await getFileFromDirectory(
+            origPath,
+            origPathName.substring(origPathName.lastIndexOf('/') + 1),
+        );
+
+        const newFileId = await this.storage.copyObject(StorageBucketName, file.storageId);
+
+        try {
+            await destPath.populate('files').execPopulate();
+            const newFile = await File.create({
+                size: file.size,
+                type: file.type,
+                name: file.name,
+                owner: user._id,
+                path: destPath._id,
+                storageId: newFileId,
+            });
+            await Path.updateOne({ id: destPath.id }, { $push: { files: newFile } });
+        } catch (err) {
+            console.error(err);
+            throw new InternalError('Failed to move file record');
+        }
+
+        reply.code(200).send({
+            message: 'File moved',
+            data: {
+                ...file,
+            },
+        });
+
         return;
     };
 
