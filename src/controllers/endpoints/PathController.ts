@@ -12,6 +12,8 @@ import {
 import { PathQuerySchema } from '../../common/schemas/request/PathQuerySchema';
 import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { traversePathTree } from '../../common/TreeTraverser';
+import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
+import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -29,6 +31,7 @@ export class PathController extends BaseController {
                     querystring: { path: { type: 'string', pattern: '^\/' } }, // prettier-ignore
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.listDirectory,
@@ -43,6 +46,7 @@ export class PathController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.createDirectory,
@@ -57,6 +61,7 @@ export class PathController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.copyDirectory,
@@ -71,6 +76,7 @@ export class PathController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.moveDirectory,
@@ -85,6 +91,7 @@ export class PathController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.deleteDirectory,

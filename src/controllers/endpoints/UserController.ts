@@ -4,6 +4,8 @@ import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import { NotFoundError, InternalError } from '../../common/Errors';
 import argon2 from 'argon2';
+import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
+import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 
 export class UserController extends BaseController {
     public bootstrap = (
@@ -27,6 +29,7 @@ export class UserController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.changePassword,

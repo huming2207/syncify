@@ -7,6 +7,8 @@ import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { InternalError, UnauthorisedError, BadRequestError } from '../../common/Errors';
 import { LoginFormSchema, RegisterFormSchema } from '../../common/schemas/request/UserFormSchema';
+import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
+import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 
 export class AuthController extends BaseController {
     public bootstrap = (
@@ -23,6 +25,7 @@ export class AuthController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     description: 'Register a new user',
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.register,
@@ -36,6 +39,7 @@ export class AuthController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     description: 'User login, and get a new JWT token',
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.login,
