@@ -18,6 +18,7 @@ import { StorageService, StorageBucketName } from '../../services/storage/Storag
 import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
+import { traversePathTree, getFileFromDirectory } from '../../common/TreeTraverser';
 
 export class FileController extends BaseController {
     private storage: StorageService = StorageService.getInstance();
@@ -106,38 +107,16 @@ export class FileController extends BaseController {
         if (!user) throw new NotFoundError('Failed to find the user');
 
         const path = req.query['path'] as string;
-        const pathArr = path.split('/').splice(1);
 
-        // Do a BFS here to iterate a path tree.
-        // If a path name is matched, continue; otherwise, return 404.
-        let currPath = user.rootPath;
-        let fileName = '';
-        for (const [idx, pathItem] of pathArr.entries()) {
-            await currPath.populate('childrenPath').execPopulate();
-            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
-            if (idx === pathArr.length - 1) {
-                fileName = pathItem;
-                break;
-            }
+        const currPath = await traversePathTree(
+            user.rootPath,
+            path.substring(0, path.lastIndexOf('/')),
+        );
 
-            if (childPath.length < 1) {
-                throw new NotFoundError('Directory does not exist');
-            } else {
-                currPath = childPath[0];
-            }
-        }
-
-        // Load files from the directory it should be in
-        await currPath.populate('files').execPopulate();
-
-        // Load file
-        const files = currPath.files.filter((element) => element.name === fileName);
-        if (files.length < 1) {
-            throw new NotFoundError('File does not exist');
-        }
+        const fileName = path.substring(path.lastIndexOf('/') + 1);
 
         // Stream the file
-        const file = files[0];
+        const file = await getFileFromDirectory(currPath, fileName);
         reply
             .code(200)
             .header('Content-Disposition', `attachment; filename=${file.name}`)
@@ -235,7 +214,39 @@ export class FileController extends BaseController {
     };
 
     private moveFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
-        return;
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new UnauthorisedError('Cannot load current user');
+        const origPathName = req.body['orig'] as string;
+        const origPath = await traversePathTree(
+            user.rootPath,
+            origPathName.substring(0, origPathName.lastIndexOf('/')), // Get the path without the file, e.g. /home/test/foo.txt => /home/test
+        );
+
+        const destPathName = req.body['dest'] as string;
+        const destPath = await traversePathTree(user.rootPath, destPathName);
+        const file = await getFileFromDirectory(
+            origPath,
+            origPathName.substring(origPathName.lastIndexOf('/') + 1),
+        );
+
+        try {
+            await origPath.populate('files').execPopulate();
+            await destPath.populate('files').execPopulate();
+            await File.updateOne({ id: file.id }, { path: destPath }); // Change the file's path field to the new path
+            await Path.updateOne({ id: origPath.id }, { $pull: { files: file } }); // Pull out the file from the original path
+            await Path.updateOne({ id: destPath.id }, { $push: { files: file } });
+        } catch (err) {
+            console.error(err);
+            throw new InternalError('Failed to move file record');
+        }
+
+        reply.code(200).send({
+            message: 'File moved',
+            data: {
+                ...file,
+            },
+        });
     };
 
     private removeFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {

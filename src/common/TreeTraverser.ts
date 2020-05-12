@@ -1,5 +1,6 @@
 import { PathDoc } from '../models/PathModel';
 import { NotFoundError } from './Errors';
+import { FileDoc } from '../models/FileModel';
 
 export async function traversePathTree(root: PathDoc, path: string): Promise<PathDoc> {
     if (path === '/') return root;
@@ -16,4 +17,17 @@ export async function traversePathTree(root: PathDoc, path: string): Promise<Pat
         }
     }
     return currPath;
+}
+
+export async function getFileFromDirectory(dir: PathDoc, fileName: string): Promise<FileDoc> {
+    // Load files from the directory it should be in
+    await dir.populate('files').execPopulate();
+
+    // Load file
+    const files = dir.files.filter((element) => element.name === fileName);
+    if (files.length < 1) {
+        throw new NotFoundError('File does not exist');
+    }
+
+    return files[0];
 }
