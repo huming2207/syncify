@@ -5,6 +5,6 @@ export const SuccessResponseSchema: JSONSchema7 = {
     type: 'object',
     properties: {
         message: { type: 'string' },
-        data: { type: 'object' },
+        data: { type: 'object', additionalProperties: true },
     },
 };
