@@ -6,7 +6,7 @@ import Path from '../../models/PathModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { InternalError, UnauthorisedError, BadRequestError } from '../../common/Errors';
-import { LoginFormSchema, RegisterFormSchema } from '../../common/schemas/UserFormSchema';
+import { LoginFormSchema, RegisterFormSchema } from '../../common/schemas/request/UserFormSchema';
 
 export class AuthController extends BaseController {
     public bootstrap = (

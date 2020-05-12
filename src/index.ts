@@ -4,8 +4,8 @@ import { connectToDb } from './common/Database';
 import { ProtectedMiddleware } from './controllers/middleware/ProtectedMiddleware';
 import { AuthController } from './controllers/endpoints/AuthController';
 import FastifyOas from 'fastify-oas';
-import { LoginFormSchema, RegisterFormSchema } from './common/schemas/UserFormSchema';
-import { PathQuerySchema } from './common/schemas/PathQuerySchema';
+import { LoginFormSchema, RegisterFormSchema } from './common/schemas/request/UserFormSchema';
+import { PathQuerySchema } from './common/schemas/request/PathQuerySchema';
 import { ErrorHandler } from './controllers/middleware/ErrorHandler';
 
 require('dotenv').config();

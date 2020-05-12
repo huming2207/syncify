@@ -9,8 +9,8 @@ import {
     InternalError,
     UnauthorisedError,
 } from '../../common/Errors';
-import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
-import { CopyMoveSchema } from '../../common/schemas/CopyMoveSchema';
+import { PathQuerySchema } from '../../common/schemas/request/PathQuerySchema';
+import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { traversePathTree } from '../../common/TreeTraverser';
 
 export class PathController extends BaseController {

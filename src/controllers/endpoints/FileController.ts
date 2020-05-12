@@ -15,7 +15,9 @@ import {
 import { Readable } from 'stream';
 import StreamMeter from 'stream-meter';
 import { StorageService, StorageBucketName } from '../../services/storage/StorageService';
-import { CopyMoveSchema } from '../../common/schemas/CopyMoveSchema';
+import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
+import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
+import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 
 export class FileController extends BaseController {
     private storage: StorageService = StorageService.getInstance();
@@ -51,6 +53,7 @@ export class FileController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.moveFile,
