@@ -229,7 +229,6 @@ export class FileController extends BaseController {
         const newFileId = await this.storage.copyObject(StorageBucketName, file.storageId);
 
         try {
-            await destPath.populate('files').execPopulate();
             const newFile = await File.create({
                 size: file.size,
                 type: file.type,
@@ -238,7 +237,7 @@ export class FileController extends BaseController {
                 path: destPath._id,
                 storageId: newFileId,
             });
-            await Path.updateOne({ id: destPath.id }, { $push: { files: newFile } });
+            await Path.updateOne(destPath, { $push: { files: newFile._id } });
         } catch (err) {
             console.error(err);
             throw new InternalError('Failed to move file record');
@@ -247,7 +246,7 @@ export class FileController extends BaseController {
         reply.code(200).send({
             message: 'File moved',
             data: {
-                ...file,
+                file,
             },
         });
 
@@ -272,11 +271,9 @@ export class FileController extends BaseController {
         );
 
         try {
-            await origPath.populate('files').execPopulate();
-            await destPath.populate('files').execPopulate();
-            await File.updateOne({ id: file.id }, { path: destPath }); // Change the file's path field to the new path
-            await Path.updateOne({ id: origPath.id }, { $pull: { files: file } }); // Pull out the file from the original path
-            await Path.updateOne({ id: destPath.id }, { $push: { files: file } });
+            await File.updateOne(file, { path: destPath }); // Change the file's path field to the new path
+            await Path.updateOne(origPath, { $pull: { files: file._id } }); // Pull out the file from the original path
+            await Path.updateOne(destPath, { $push: { files: file._id } });
         } catch (err) {
             console.error(err);
             throw new InternalError('Failed to move file record');
@@ -285,7 +282,7 @@ export class FileController extends BaseController {
         reply.code(200).send({
             message: 'File moved',
             data: {
-                ...file,
+                file,
             },
         });
     };
