@@ -146,31 +146,11 @@ export class PathController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.query['path'] as string;
+        const path = await traversePathTree(user.rootPath, pathName);
 
-        let parentPath = user.rootPath;
+        if (!path) throw new NotFoundError('Directory does not exist');
 
-        // If it's the root directory, skip the BFS
-        if (pathName !== '/') {
-            // Do a BFS here to iterate a path tree.
-            // If a path name is matched, continue; otherwise, return 404.
-            const pathArr = pathName.split('/').splice(1);
-            for (const pathItem of pathArr) {
-                await parentPath.populate('childrenPath').execPopulate();
-                const childPath = parentPath.childrenPath.filter(
-                    (element) => element.name === pathItem,
-                );
-
-                if (childPath.length < 1) {
-                    throw new NotFoundError('Directory does not exist');
-                } else {
-                    parentPath = childPath[0];
-                }
-            }
-        }
-
-        if (!parentPath) throw new NotFoundError('Directory does not exist');
-
-        await parentPath
+        await path
             .populate('owner')
             .populate('files', '_id name size type owner created updated')
             .populate('childrenPath', '_id name owner created updated')
@@ -179,15 +159,15 @@ export class PathController extends BaseController {
         reply.code(200).send({
             msg: '',
             data: {
-                id: parentPath.id,
+                id: path.id,
                 owner: {
-                    name: parentPath.owner.username,
-                    email: parentPath.owner.email,
-                    id: parentPath.owner._id,
+                    name: path.owner.username,
+                    email: path.owner.email,
+                    id: path.owner._id,
                 },
-                files: parentPath.files,
-                name: parentPath.name,
-                dirs: parentPath.childrenPath,
+                files: path.files,
+                name: path.name,
+                dirs: path.childrenPath,
             },
         });
     };
