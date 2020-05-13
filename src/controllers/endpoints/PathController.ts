@@ -193,7 +193,7 @@ export class PathController extends BaseController {
             await Path.updateOne(origPath, {
                 name: destPathName.substring(destPathName.lastIndexOf('/') + 1),
             });
-            reply.code(200).send({ message: 'Directory renamed', data: null });
+            reply.code(200).send({ message: 'Directory renamed', data: {} });
         } else {
             const destPath = await traversePathTree(user.rootPath, destPathName);
 
@@ -206,7 +206,7 @@ export class PathController extends BaseController {
             // Remove orig's parent's child field
             await parentPath.populate('childrenPath').execPopulate();
             await Path.updateOne(parentPath, {
-                $pull: { childrenPath: { id: origPath.id } },
+                $pull: { childrenPath: origPath },
             });
 
             // Add orig to dest
@@ -214,7 +214,7 @@ export class PathController extends BaseController {
             await Path.updateOne(destPath, { $push: { childrenPath: origPath } });
             await Path.updateOne(origPath, { parentPath: destPath });
 
-            reply.code(200).send({ message: 'Directory moved', data: null });
+            reply.code(200).send({ message: 'Directory moved', data: {} });
         }
     };
 
@@ -230,7 +230,7 @@ export class PathController extends BaseController {
         try {
             console.log(currPath);
             await currPath.remove();
-            reply.code(200).send({ message: 'Directory deleted', data: null });
+            reply.code(200).send({ message: 'Directory deleted', data: {} });
         } catch (err) {
             throw new InternalError('Failed to perform deletion');
         }

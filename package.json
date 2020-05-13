@@ -34,7 +34,7 @@
     "stream-meter": "^1.0.4",
     "ts-jest": "^25.5.1",
     "ts-node": "^8.10.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   },
   "devDependencies": {
     "@babel/cli": "7.8.4",
@@ -47,11 +47,11 @@
     "@types/json-schema": "7.0.4",
     "@types/jsonwebtoken": "8.3.9",
     "@types/minio": "7.0.5",
-    "@types/mongoose": "5.7.16",
-    "@types/node": "13.13.5",
+    "@types/mongoose": "5.7.18",
+    "@types/node": "14.0.1",
     "@types/stream-meter": "0.0.22",
-    "@typescript-eslint/eslint-plugin": "2.32.0",
-    "@typescript-eslint/parser": "2.32.0",
+    "@typescript-eslint/eslint-plugin": "2.33.0",
+    "@typescript-eslint/parser": "2.33.0",
     "eslint": "7.0.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-prettier": "3.1.3",
