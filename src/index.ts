@@ -4,8 +4,8 @@ import { connectToDb } from './common/Database';
 import { ProtectedMiddleware } from './controllers/middleware/ProtectedMiddleware';
 import { AuthController } from './controllers/endpoints/AuthController';
 import FastifyOas from 'fastify-oas';
-import { LoginFormSchema, RegisterFormSchema } from './common/schemas/UserFormSchema';
-import { PathQuerySchema } from './common/schemas/PathQuerySchema';
+import { LoginFormSchema, RegisterFormSchema } from './common/schemas/request/UserFormSchema';
+import { PathQuerySchema } from './common/schemas/request/PathQuerySchema';
 import { ErrorHandler } from './controllers/middleware/ErrorHandler';
 
 require('dotenv').config();
@@ -19,25 +19,33 @@ const server = fastify({
 });
 const prefix = { prefix: '/api' };
 
-server.register(FastifyOas, {
-    routePrefix: '/api/documentation',
-    exposeRoute: true,
-    swagger: {
-        info: {
-            title: 'Syncify',
-            description: 'Cloud Computing Assignment 2',
-            version: '0.1.0',
-        },
-        definitions: { LoginFormSchema, RegisterFormSchema, PathQuerySchema },
-        securityDefinitions: {
-            JWT: {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
+if (process.env.SYNCIFY_DISABLE_SWAGGER !== 'true') {
+    server.register(FastifyOas, {
+        routePrefix: '/api/documentation',
+        exposeRoute: true,
+        swagger: {
+            info: {
+                title: 'Syncify',
+                description: 'Cloud Computing Assignment 2',
+                version: '0.1.0',
+            },
+            servers: [
+                {
+                    url: 'http://127.0.0.1:3000',
+                    description: 'Dev server',
+                },
+            ],
+            definitions: { LoginFormSchema, RegisterFormSchema, PathQuerySchema },
+            securityDefinitions: {
+                JWT: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
             },
         },
-    },
-});
+    });
+}
 
 server.register(new AuthController().bootstrap, prefix);
 server.register(new ProtectedMiddleware().bootstrap, prefix);
@@ -59,7 +67,7 @@ connectToDb()
                         console.error(err);
                         process.exit(1);
                     }
-                    server.oas();
+                    if (process.env.SYNCIFY_DISABLE_SWAGGER !== 'true') server.oas();
                 });
                 console.log(`Fastify is listening at ${address}`);
             },

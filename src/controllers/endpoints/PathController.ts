@@ -3,8 +3,17 @@ import User from '../../models/UserModel';
 import Path from '../../models/PathModel';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
-import { NotFoundError, BadRequestError, InternalError } from '../../common/Errors';
-import { PathQuerySchema } from '../../common/schemas/PathQuerySchema';
+import {
+    NotFoundError,
+    BadRequestError,
+    InternalError,
+    UnauthorisedError,
+} from '../../common/Errors';
+import { PathQuerySchema } from '../../common/schemas/request/PathQuerySchema';
+import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
+import { traversePathTree } from '../../common/TreeTraverser';
+import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
+import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -20,7 +29,9 @@ export class PathController extends BaseController {
                 schema: {
                     description: 'List a directory',
                     querystring: { path: { type: 'string', pattern: '^\/' } }, // prettier-ignore
+                    produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.listDirectory,
@@ -35,30 +46,40 @@ export class PathController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.createDirectory,
         );
 
         instance.put(
-            '/path',
+            '/path/copy',
             {
                 schema: {
-                    description: 'Move or copy a directory',
-                    body: {
-                        type: 'object',
-                        properties: {
-                            oldPath: { type: 'string', pattern: '^\/' }, // prettier-ignore
-                            newPath: { type: 'string', pattern: '^\/' }, // prettier-ignore
-                            move: { type: 'boolean' },
-                        },
-                    },
+                    description: 'Copy a directory',
+                    body: CopyMoveSchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
-            this.copyMoveDirectory,
+            this.copyDirectory,
+        );
+
+        instance.put(
+            '/path/move',
+            {
+                schema: {
+                    description: 'Copy a directory',
+                    body: CopyMoveSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
+                },
+            },
+            this.moveDirectory,
         );
 
         instance.delete(
@@ -70,6 +91,7 @@ export class PathController extends BaseController {
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
                 },
             },
             this.deleteDirectory,
@@ -81,7 +103,7 @@ export class PathController extends BaseController {
     private createDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.body['path'] as string;
         const pathToCreate = pathName.split('/').splice(1);
 
@@ -96,7 +118,7 @@ export class PathController extends BaseController {
                 );
 
                 if (childPath.length < 1) {
-                    const newPath = await Path.create({ name: pathItem, owner: user });
+                    const newPath = await Path.create({ name: pathItem, owner: user, parentPath });
                     await Path.updateOne(
                         { _id: parentPath._id },
                         { $push: { childrenPath: newPath } },
@@ -122,33 +144,13 @@ export class PathController extends BaseController {
     private listDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.query['path'] as string;
+        const path = await traversePathTree(user.rootPath, pathName);
 
-        let parentPath = user.rootPath;
+        if (!path) throw new NotFoundError('Directory does not exist');
 
-        // If it's the root directory, skip the BFS
-        if (pathName !== '/') {
-            // Do a BFS here to iterate a path tree.
-            // If a path name is matched, continue; otherwise, return 404.
-            const pathArr = pathName.split('/').splice(1);
-            for (const pathItem of pathArr) {
-                await parentPath.populate('childrenPath').execPopulate();
-                const childPath = parentPath.childrenPath.filter(
-                    (element) => element.name === pathItem,
-                );
-
-                if (childPath.length < 1) {
-                    throw new NotFoundError('Directory does not exist');
-                } else {
-                    parentPath = childPath[0];
-                }
-            }
-        }
-
-        if (!parentPath) throw new NotFoundError('Directory does not exist');
-
-        await parentPath
+        await path
             .populate('owner')
             .populate('files', '_id name size type owner created updated')
             .populate('childrenPath', '_id name owner created updated')
@@ -157,43 +159,73 @@ export class PathController extends BaseController {
         reply.code(200).send({
             msg: '',
             data: {
-                id: parentPath.id,
+                id: path.id,
                 owner: {
-                    name: parentPath.owner.username,
-                    email: parentPath.owner.email,
-                    id: parentPath.owner._id,
+                    name: path.owner.username,
+                    email: path.owner.email,
+                    id: path.owner._id,
                 },
-                files: parentPath.files,
-                name: parentPath.name,
-                dirs: parentPath.childrenPath,
+                files: path.files,
+                name: path.name,
+                dirs: path.childrenPath,
             },
         });
     };
 
-    private copyMoveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+    private copyDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         return;
+    };
+
+    private moveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new UnauthorisedError('Cannot load current user');
+        const origPathName = req.body['orig'] as string;
+        const origPath = await traversePathTree(user.rootPath, origPathName);
+
+        const destPathName = req.body['dest'] as string;
+
+        // If orig and dest have the same parent, then rename orig to dest (like in linux: "mv /home/xyz/foo /home/xyz/bar")
+        // Or otherwise, do the real move
+        const origPathParent = origPathName.substring(0, origPathName.lastIndexOf('/'));
+        const destPathParent = destPathName.substring(0, destPathName.lastIndexOf('/'));
+        if (origPathParent === destPathParent) {
+            await Path.updateOne(origPath, {
+                name: destPathName.substring(destPathName.lastIndexOf('/') + 1),
+            });
+            reply.code(200).send({ message: 'Directory renamed', data: null });
+        } else {
+            const destPath = await traversePathTree(user.rootPath, destPathName);
+
+            // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
+            await origPath.populate('parentPath').execPopulate();
+            const parentPath = origPath.parentPath;
+            if (!parentPath) throw new BadRequestError('Root path cannot be moved');
+            console.log(parentPath);
+
+            // Remove orig's parent's child field
+            await parentPath.populate('childrenPath').execPopulate();
+            await Path.updateOne(parentPath, {
+                $pull: { childrenPath: { id: origPath.id } },
+            });
+
+            // Add orig to dest
+            await destPath.populate('childrenPath').execPopulate();
+            await Path.updateOne(destPath, { $push: { childrenPath: origPath } });
+            await Path.updateOne(origPath, { parentPath: destPath });
+
+            reply.code(200).send({ message: 'Directory moved', data: null });
+        }
     };
 
     private deleteDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
-        if (!user) throw new NotFoundError('Cannot load current user');
+        if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.body['path'] as string;
-        const pathArr = pathName.split('/').splice(1);
+        if (pathName === '/') throw new BadRequestError('Cannot delete root directory!');
 
-        // Do a BFS here to iterate a path tree.
-        // If a path name is matched, continue; otherwise, return 404.
-        let currPath = user.rootPath;
-        for (const pathItem of pathArr) {
-            await currPath.populate('childrenPath').execPopulate();
-            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
-
-            if (childPath.length < 1) {
-                throw new NotFoundError('Directory does not exist');
-            } else {
-                currPath = childPath[0];
-            }
-        }
+        const currPath = await traversePathTree(user.rootPath, pathName);
 
         try {
             console.log(currPath);

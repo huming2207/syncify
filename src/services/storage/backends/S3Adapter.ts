@@ -32,7 +32,12 @@ export class S3Adapter implements StorageAdapter {
     public performCopyObject = async (bucketName: string, id: ObjectId): Promise<ObjectId> => {
         const oid = new ObjectId();
         const condition = new CopyConditions();
-        await this.client.copyObject(bucketName, oid.toHexString(), id.toHexString(), condition);
+        await this.client.copyObject(
+            bucketName,
+            oid.toHexString(),
+            `/${bucketName}/${id.toHexString()}`,
+            condition,
+        );
         return oid;
     };
 
