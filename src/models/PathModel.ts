@@ -12,15 +12,16 @@ export interface PathDoc extends Document {
     files: FileDoc[];
 }
 
-export const PathSchema = new Schema({
-    owner: { type: Schema.Types.ObjectId, ref: 'User' },
-    childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
-    parentPath: { type: Schema.Types.ObjectId, ref: 'Path' },
-    name: { type: String },
-    created: { type: Date, default: Date.now },
-    updated: { type: Date, default: Date.now },
-    files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
-});
+export const PathSchema = new Schema(
+    {
+        owner: { type: Schema.Types.ObjectId, ref: 'User' },
+        childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
+        parentPath: { type: Schema.Types.ObjectId, ref: 'Path' },
+        name: { type: String },
+        files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
+    },
+    { timestamps: { createdAt: 'created', updatedAt: 'updated' } },
+);
 
 PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
     this.populate('childrenPath', (err) => {
