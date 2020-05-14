@@ -14,6 +14,7 @@ import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { traversePathTree } from '../../common/TreeTraverser';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
+import { RenameSchema } from '../../common/schemas/request/RenameSchema';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -80,6 +81,21 @@ export class PathController extends BaseController {
                 },
             },
             this.moveDirectory,
+        );
+
+        instance.put(
+            '/path/rename',
+            {
+                schema: {
+                    description: 'Rename a directory',
+                    body: RenameSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
+                },
+            },
+            this.renameDirectory,
         );
 
         instance.delete(
@@ -176,6 +192,22 @@ export class PathController extends BaseController {
         return;
     };
 
+    private renameDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new UnauthorisedError('Cannot load current user');
+        const pathStr = req.body['item'] as string;
+        const newName = req.body['name'] as string;
+        const currPath = await traversePathTree(user.rootPath, pathStr);
+
+        try {
+            await Path.updateOne(currPath, { name: newName });
+            reply.code(200).send({ message: 'Directory renamed', data: {} });
+        } catch (err) {
+            throw new InternalError('Failed to rename directory');
+        }
+    };
+
     private moveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         const userId = (req.user as any)['id'];
         const user = await User.findById(userId);
@@ -184,19 +216,9 @@ export class PathController extends BaseController {
         const origPath = await traversePathTree(user.rootPath, origPathName);
 
         const destPathName = req.body['dest'] as string;
+        const destPath = await traversePathTree(user.rootPath, destPathName);
 
-        // If orig and dest have the same parent, then rename orig to dest (like in linux: "mv /home/xyz/foo /home/xyz/bar")
-        // Or otherwise, do the real move
-        const origPathParent = origPathName.substring(0, origPathName.lastIndexOf('/'));
-        const destPathParent = destPathName.substring(0, destPathName.lastIndexOf('/'));
-        if (origPathParent === destPathParent) {
-            await Path.updateOne(origPath, {
-                name: destPathName.substring(destPathName.lastIndexOf('/') + 1),
-            });
-            reply.code(200).send({ message: 'Directory renamed', data: {} });
-        } else {
-            const destPath = await traversePathTree(user.rootPath, destPathName);
-
+        try {
             // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
             await origPath.populate('parentPath').execPopulate();
             const parentPath = origPath.parentPath;
@@ -213,6 +235,8 @@ export class PathController extends BaseController {
             await Path.updateOne(origPath, { parentPath: destPath });
 
             reply.code(200).send({ message: 'Directory moved', data: {} });
+        } catch (err) {
+            throw new InternalError('Failed to move a file');
         }
     };
 
