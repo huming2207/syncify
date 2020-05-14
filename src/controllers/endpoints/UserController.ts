@@ -29,6 +29,14 @@ export class UserController extends BaseController {
             },
             this.changePassword,
         );
+        instance.get('/user/me', {
+            schema: {
+                description: 'Get current user info',
+                produces: ['application/json'],
+                security: [{ JWT: [] }],
+                response: { 200: SuccessResponseSchema, ...ErrorSchema },
+            },
+        });
         done();
     };
 
@@ -47,6 +55,24 @@ export class UserController extends BaseController {
 
             reply.code(200).send({
                 msg: 'Password updated',
+                data: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                },
+            });
+        } catch (err) {
+            throw new InternalError(`Failed to change password: ${err}`);
+        }
+    };
+
+    private getUserInfo = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        const userId = (req.user as any)['id'];
+        try {
+            const user = await User.findById(userId);
+            if (!user) throw new NotFoundError('User not found');
+            reply.code(200).send({
+                msg: 'OK',
                 data: {
                     id: user.id,
                     username: user.username,
