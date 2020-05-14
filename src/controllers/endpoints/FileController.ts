@@ -19,6 +19,7 @@ import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 import { traversePathTree, getFileFromDirectory } from '../../common/TreeTraverser';
+import { RenameSchema } from '../../common/schemas/request/RenameSchema';
 
 export class FileController extends BaseController {
     private storage: StorageService = StorageService.getInstance();
@@ -73,6 +74,21 @@ export class FileController extends BaseController {
                 },
             },
             this.copyFile,
+        );
+
+        instance.put(
+            '/file/rename',
+            {
+                schema: {
+                    description: 'Rename a file',
+                    body: RenameSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
+                },
+            },
+            this.renameFile,
         );
 
         instance.delete(
@@ -294,6 +310,26 @@ export class FileController extends BaseController {
         } catch (err) {
             console.error(err);
             throw new InternalError('Failed to move file record');
+        }
+    };
+
+    private renameFile = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new UnauthorisedError('Cannot load current user');
+        const pathStr = req.body['item'] as string;
+        const newName = req.body['name'] as string;
+
+        const itemDir = pathStr.substring(0, pathStr.lastIndexOf('/')); // Get the path without the file, e.g. /home/test/foo.txt => /home/test
+        const itemName = pathStr.substring(pathStr.lastIndexOf('/') + 1);
+
+        try {
+            const currPath = await traversePathTree(user.rootPath, itemDir);
+            const currFile = await getFileFromDirectory(currPath, itemName);
+            await File.updateOne(currFile, { name: newName });
+            reply.code(200).send({ message: 'File renamed', data: {} });
+        } catch (err) {
+            throw new InternalError('Failed to rename file');
         }
     };
 

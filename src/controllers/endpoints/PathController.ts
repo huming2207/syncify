@@ -14,6 +14,7 @@ import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { traversePathTree } from '../../common/TreeTraverser';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
+import { RenameSchema } from '../../common/schemas/request/RenameSchema';
 
 export class PathController extends BaseController {
     public bootstrap = (
@@ -80,6 +81,21 @@ export class PathController extends BaseController {
                 },
             },
             this.moveDirectory,
+        );
+
+        instance.put(
+            '/path/rename',
+            {
+                schema: {
+                    description: 'Rename a directory',
+                    body: RenameSchema,
+                    consumes: ['application/x-www-form-urlencoded'],
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
+                },
+            },
+            this.renameDirectory,
         );
 
         instance.delete(
@@ -174,6 +190,22 @@ export class PathController extends BaseController {
 
     private copyDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
         return;
+    };
+
+    private renameDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
+        const userId = (req.user as any)['id'];
+        const user = await User.findById(userId);
+        if (!user) throw new UnauthorisedError('Cannot load current user');
+        const pathStr = req.body['item'] as string;
+        const newName = req.body['name'] as string;
+        const currPath = await traversePathTree(user.rootPath, pathStr);
+
+        try {
+            await Path.updateOne(currPath, { name: newName });
+            reply.code(200).send({ message: 'Directory renamed', data: {} });
+        } catch (err) {
+            throw new InternalError('Failed to rename directory');
+        }
     };
 
     private moveDirectory = async (req: ServerRequest, reply: ServerReply): Promise<void> => {
