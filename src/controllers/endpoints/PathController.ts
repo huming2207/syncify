@@ -216,19 +216,9 @@ export class PathController extends BaseController {
         const origPath = await traversePathTree(user.rootPath, origPathName);
 
         const destPathName = req.body['dest'] as string;
+        const destPath = await traversePathTree(user.rootPath, destPathName);
 
-        // If orig and dest have the same parent, then rename orig to dest (like in linux: "mv /home/xyz/foo /home/xyz/bar")
-        // Or otherwise, do the real move
-        const origPathParent = origPathName.substring(0, origPathName.lastIndexOf('/'));
-        const destPathParent = destPathName.substring(0, destPathName.lastIndexOf('/'));
-        if (origPathParent === destPathParent) {
-            await Path.updateOne(origPath, {
-                name: destPathName.substring(destPathName.lastIndexOf('/') + 1),
-            });
-            reply.code(200).send({ message: 'Directory renamed', data: {} });
-        } else {
-            const destPath = await traversePathTree(user.rootPath, destPathName);
-
+        try {
             // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
             await origPath.populate('parentPath').execPopulate();
             const parentPath = origPath.parentPath;
@@ -245,6 +235,8 @@ export class PathController extends BaseController {
             await Path.updateOne(origPath, { parentPath: destPath });
 
             reply.code(200).send({ message: 'Directory moved', data: {} });
+        } catch (err) {
+            throw new InternalError('Failed to move a file');
         }
     };
 

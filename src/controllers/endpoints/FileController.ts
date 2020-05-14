@@ -278,35 +278,21 @@ export class FileController extends BaseController {
         const origPathFile = origPathName.substring(origPathName.lastIndexOf('/') + 1);
 
         const destPathName = req.body['dest'] as string;
-        const destPathDir = destPathName.substring(0, destPathName.lastIndexOf('/')); // Get the path without the file, e.g. /home/test/foo.txt => /home/test
-        const destPathFile = destPathName.substring(destPathName.lastIndexOf('/') + 1);
 
         const origPath = await traversePathTree(user.rootPath, origPathDir);
         const file = await getFileFromDirectory(origPath, origPathFile);
 
         try {
-            // If the directory part is the same, then it must be a rename request
-            // e.g. /home/test.txt -> /home/foo.txt, where the directory part is all "/home"
-            if (origPathDir === destPathDir) {
-                await File.updateOne(file, { name: destPathFile });
-                reply.code(200).send({
-                    message: 'File renamed',
-                    data: {
-                        file,
-                    },
-                });
-            } else {
-                const destPath = await traversePathTree(user.rootPath, destPathName);
-                await File.updateOne(file, { path: destPath }); // Change the file's path field to the new path
-                await Path.updateOne(origPath, { $pull: { files: file._id } }); // Pull out the file from the original path
-                await Path.updateOne(destPath, { $push: { files: file._id } });
-                reply.code(200).send({
-                    message: 'File moved',
-                    data: {
-                        file,
-                    },
-                });
-            }
+            const destPath = await traversePathTree(user.rootPath, destPathName);
+            await File.updateOne(file, { path: destPath }); // Change the file's path field to the new path
+            await Path.updateOne(origPath, { $pull: { files: file._id } }); // Pull out the file from the original path
+            await Path.updateOne(destPath, { $push: { files: file._id } });
+            reply.code(200).send({
+                message: 'File moved',
+                data: {
+                    file,
+                },
+            });
         } catch (err) {
             console.error(err);
             throw new InternalError('Failed to move file record');
