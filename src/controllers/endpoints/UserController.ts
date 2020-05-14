@@ -6,6 +6,7 @@ import { NotFoundError, InternalError } from '../../common/Errors';
 import argon2 from 'argon2';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
+import { ChangePasswordSchema } from '../../common/schemas/request/UserFormSchema';
 
 export class UserController extends BaseController {
     public bootstrap = (
@@ -19,13 +20,7 @@ export class UserController extends BaseController {
             {
                 schema: {
                     description: 'Change password',
-                    body: {
-                        type: 'object',
-                        properties: {
-                            password: { type: 'string', minLength: 8, maxLength: 20 },
-                        },
-                        required: ['password'],
-                    },
+                    body: ChangePasswordSchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],

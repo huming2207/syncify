@@ -20,3 +20,12 @@ export const RegisterFormSchema: JSONSchema7 = {
     },
     required: ['username', 'password', 'email'],
 };
+
+export const ChangePasswordSchema: JSONSchema7 = {
+    $id: '#changePasswdForm',
+    type: 'object',
+    properties: {
+        password: { type: 'string', minLength: 8, maxLength: 20 },
+    },
+    required: ['password'],
+};
