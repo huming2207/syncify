@@ -204,14 +204,12 @@ export class PathController extends BaseController {
             console.log(parentPath);
 
             // Remove orig's parent's child field
-            await parentPath.populate('childrenPath').execPopulate();
             await Path.updateOne(parentPath, {
-                $pull: { childrenPath: origPath },
+                $pull: { childrenPath: origPath._id },
             });
 
             // Add orig to dest
-            await destPath.populate('childrenPath').execPopulate();
-            await Path.updateOne(destPath, { $push: { childrenPath: origPath } });
+            await Path.updateOne(destPath, { $push: { childrenPath: origPath._id } });
             await Path.updateOne(origPath, { parentPath: destPath });
 
             reply.code(200).send({ message: 'Directory moved', data: {} });
