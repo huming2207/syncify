@@ -240,11 +240,11 @@ export class FileController extends BaseController {
             await Path.updateOne(destPath, { $push: { files: newFile._id } });
         } catch (err) {
             console.error(err);
-            throw new InternalError('Failed to move file record');
+            throw new InternalError('Failed to copy file record');
         }
 
         reply.code(200).send({
-            message: 'File moved',
+            message: 'File copied',
             data: {
                 file,
             },
