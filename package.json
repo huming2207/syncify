@@ -5,14 +5,11 @@
   "main": "src/index.js",
   "scripts": {
     "debug": "nodemon src/index.ts",
-    "convert": "ts-jest config:migrate ./jest.config.js",
-    "test": "jest ./src --watch",
-    "coverage": "jest --collectCoverageFrom=src/**.js --coverage",
     "build": "tsc",
     "build:watch": "tsc -w",
     "lint:list": "eslint */**/*.js --fix",
     "lint": "eslint */**/*.js --fix",
-    "start:prod": "nodemon src/index.ts"
+    "start": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "Jackson Ming Hu <huming2207@gmail.com>",
