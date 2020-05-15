@@ -29,14 +29,18 @@ export class UserController extends BaseController {
             },
             this.changePassword,
         );
-        instance.get('/user/me', {
-            schema: {
-                description: 'Get current user info',
-                produces: ['application/json'],
-                security: [{ JWT: [] }],
-                response: { 200: SuccessResponseSchema, ...ErrorSchema },
+        instance.get(
+            '/user/me',
+            {
+                schema: {
+                    description: 'Get current user info',
+                    produces: ['application/json'],
+                    security: [{ JWT: [] }],
+                    response: { 200: SuccessResponseSchema, ...ErrorSchema },
+                },
             },
-        });
+            this.getUserInfo,
+        );
         done();
     };
 
