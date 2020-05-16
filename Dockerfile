@@ -1,4 +1,5 @@
 FROM node:lts-alpine
+EXPOSE 3000/tcp
 WORKDIR /app
 COPY package*.json /app/
 RUN npm install
