@@ -12,7 +12,7 @@ require('dotenv').config();
 
 const server = fastify({
     logger: {
-        level: process.env.SYNCIFY_LOG_LEVEL ? process.env.PP_LOG_LEVEL : 'warn',
+        level: process.env.SYNCIFY_LOG_LEVEL || 'warn',
         prettyPrint: process.env.SYNCIFY_LOG_PRETTY === 'true' ? { colorize: true } : false,
         sync: process.env.SYNCIFY_LOG_SYNC === 'true',
     },
@@ -55,7 +55,8 @@ connectToDb()
     .then(() => {
         console.log('Database connected, starting Fastify...');
         server.listen(
-            parseInt(process.env.SYNCIFY_PORT ? process.env.SYNCIFY_PORT : '3000'),
+            parseInt(process.env.SYNCIFY_PORT || '3000'),
+            process.env.SYNCIFY_ADDR || 'localhost',
             (err, address) => {
                 if (err) {
                     console.error(err);
