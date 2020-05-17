@@ -51,6 +51,9 @@ server.register(new AuthController().bootstrap, prefix);
 server.register(new ProtectedMiddleware().bootstrap, prefix);
 server.setErrorHandler(ErrorHandler);
 
+console.log('Starting with config:');
+console.log(process.env);
+
 connectToDb()
     .then(() => {
         console.log('Database connected, starting Fastify...');
