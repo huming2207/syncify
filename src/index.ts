@@ -31,6 +31,10 @@ if (process.env.SYNCIFY_DISABLE_SWAGGER !== 'true') {
             },
             servers: [
                 {
+                    url: 'https://syncify.jacksonhu.com',
+                    description: 'Production server',
+                },
+                {
                     url: 'http://127.0.0.1:3000',
                     description: 'Dev server',
                 },
