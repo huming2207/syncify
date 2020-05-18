@@ -104,3 +104,27 @@ Create new directory:
 
 ![assets/newdir.png](assets/newdir.png)
 
+The web app consists of five views and three components. The five views are:
+
+- Login
+- Register
+- File browser
+- About page
+- User portal
+
+These five views are linked together by Vue-Router. The Login, Register, About and User Portal view are implemented with lazy-loading. To some extent, this design will increase the page loading time, and therefore the user experience will be improved.
+
+In this screenshot below, those four views have been taken out to separated JavaScript files:
+
+![lazy-loading](assets/vue-build.png)
+
+## Server deployment
+
+This project is deployed to AWS EC2. It is designed to be eazy, clean and flexible on the deployment. The web app and API server are wrapped into two separated Docker images. 
+
+For the web app's Docker image, it is implemented with multi-stage build strategy. The first stage is a Node.js image for building and packing the web app, and the second stage is a Nginx image for serving the pre-built web app resources.
+
+For the API Server's Docker image, it is relatively simpler. It is just a standard Node.js backend server production build process.
+
+Meanwhile, a separated docker-compose configuration is also implemented. This configuration includes MongoDB (latest), the Syncify API server and the Syncify web app. Apart from that, there is another Traefik container included. Traefik is not only responsible for binding the API server and web app together, but also handles Let's Encrypt ACME challenges. 
+
