@@ -128,3 +128,28 @@ For the API Server's Docker image, it is relatively simpler. It is just a standa
 
 Meanwhile, a separated docker-compose configuration is also implemented. This configuration includes MongoDB (latest), the Syncify API server and the Syncify web app. Apart from that, there is another Traefik container included. Traefik is not only responsible for binding the API server and web app together, but also handles Let's Encrypt ACME challenges. 
 
+## Further planning
+
+Due to the previous teaming issue, some of the low-priority tasks are not implemented. It may be implemented in the near future. 
+
+### Full-text search
+
+MongoDB has the built-in full text searching functionality. This can be used for seaching texts amongs a few PDF or Microsoft Word documents.
+
+One of the major users for these functions can be Electronic Engineers or Embedded Software Engineers. Nowadays, most of those chip manufacturers will release their product datasheet and reference manual in a few PDF documents. Therefore, they need to read a lot of these PDF documents every day and it is very time consuming. With this full text search function, if a Embedded software developer wants to find a characteristic of a certain register in a certain microcontroller chip, he or she can just type in some texts he can still remember, and in the end locate the actual document.
+
+### Smoke Signal mode
+
+Ultimately, this project will become a hybird personal cloud. It can be in the normal file hosting mode, and it also be in the "smoke signal" mode.
+
+In the "smoke signal" mode, the API server acts like a CDN and BitTorrent. 
+
+For example, an international student from China, Tom, owns two Synology Network Attached Storage (NAS) servers. One is located in Shenzhen, China and the other one is in Melbourne, Australia. Due to the local ISP's restrictions in China, the NAS does not have public IP address.
+
+Tom wants to backup and sync some files with his family in China. But since there is no public IP address, he cannot connect his NAS servers directly. He can deploy this project's API server to a VPS instance in Sydney, and then run the client apps on the NAS servers. When he adds the file in his NAS in Melbourne, the files will be encrypted using the credential generated based on his accont information, and upload to the VPS in Sydney. The newly uploaded files will be cached to object storage, and marked as hot or warm data. Meanwhile, the NAS in Shenzhen will download the file from the Sydney server.
+
+After the file is synced, the data may be deleted from the object storage if no one access it. But the file metadata will be kept, which includes the file's hash. 
+
+Later if Tom goes on a trip to New Zealand, he does not need to use VPN to access his files. Instead, he just need to login to the web portal and browse the directories based on the file metadata that previously generated. If he wants to get a file to his computer, the API server will request the NAS to re-upload the file, then redirect to him.
+
+Moreover, more than one API servers are allowed. The file metadata will be synced in between, and some frequently accessed data will be cached.
