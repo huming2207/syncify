@@ -1,6 +1,6 @@
 import { BaseController } from '../BaseController';
-import User from '../../models/UserModel';
-import Path from '../../models/PathModel';
+import User, { UserDoc } from '../../models/UserModel';
+import Path, { PathDoc } from '../../models/PathModel';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
 import {
@@ -20,7 +20,7 @@ export class PathController extends BaseController {
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
-        done: Function,
+        done: () => void,
     ): void => {
         instance.register(FastifyFormBody);
 
@@ -134,7 +134,11 @@ export class PathController extends BaseController {
                 );
 
                 if (childPath.length < 1) {
-                    const newPath = await Path.create({ name: pathItem, owner: user, parentPath });
+                    const newPath = await Path.create<{
+                        name: string;
+                        owner: UserDoc;
+                        parentPath: PathDoc;
+                    }>({ name: pathItem, owner: user, parentPath });
                     await Path.updateOne(
                         { _id: parentPath._id },
                         { $push: { childrenPath: newPath } },

@@ -12,7 +12,7 @@ export class UserController extends BaseController {
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
-        done: Function,
+        done: () => void,
     ): void => {
         instance.register(FastifyFormBody);
         instance.put(

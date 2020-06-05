@@ -14,7 +14,7 @@ export class AuthController extends BaseController {
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
-        done: Function,
+        done: () => void,
     ): void => {
         instance.register(FastifyFormBody);
         instance.post(
@@ -53,13 +53,20 @@ export class AuthController extends BaseController {
         const email = req.body['email'] as string;
 
         try {
-            const createdUser = await User.create({
+            const createdUser = await User.create<{
+                username: string;
+                password: string;
+                email: string;
+            }>({
                 username,
                 password: await argon2.hash(password),
                 email,
             });
 
-            const createdPath = await Path.create({
+            const createdPath = await Path.create<{
+                owner: UserDoc;
+                name: string;
+            }>({
                 owner: createdUser,
                 name: '',
             });

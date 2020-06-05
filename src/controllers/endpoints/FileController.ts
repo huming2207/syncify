@@ -3,9 +3,9 @@ import { MiddlewareOptions, ServerInstance, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import FastifyMultipart from 'fastify-multipart';
 import mongodb from 'mongodb';
-import File from '../../models/FileModel';
-import User from '../../models/UserModel';
-import Path from '../../models/PathModel';
+import File, { FileDoc } from '../../models/FileModel';
+import User, { UserDoc } from '../../models/UserModel';
+import Path, { PathDoc } from '../../models/PathModel';
 import {
     NotFoundError,
     BadRequestError,
@@ -20,13 +20,14 @@ import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 import { traversePathTree, getFileFromDirectory } from '../../common/TreeTraverser';
 import { RenameSchema } from '../../common/schemas/request/RenameSchema';
+import { Types } from 'mongoose';
 
 export class FileController extends BaseController {
     private storage: StorageService = StorageService.getInstance();
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
-        done: Function,
+        done: () => void,
     ): void => {
         instance.register(FastifyFormBody);
         instance.get(
@@ -198,7 +199,14 @@ export class FileController extends BaseController {
                 }
 
                 // Create file index
-                const file = await File.create({
+                const file = await File.create<{
+                    size: number;
+                    type: string;
+                    name: string;
+                    owner: UserDoc;
+                    path: PathDoc;
+                    storageId: Types.ObjectId;
+                }>({
                     size: streamMeter.bytes,
                     type: mimeType,
                     name: fileName,
@@ -245,7 +253,14 @@ export class FileController extends BaseController {
         const newFileId = await this.storage.copyObject(StorageBucketName, file.storageId);
 
         try {
-            const newFile = await File.create({
+            const newFile = await File.create<{
+                size: number;
+                type: string;
+                name: string;
+                owner: UserDoc;
+                path: PathDoc;
+                storageId: Types.ObjectId;
+            }>({
                 size: file.size,
                 type: file.type,
                 name: file.name,
