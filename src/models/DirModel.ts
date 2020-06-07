@@ -4,27 +4,27 @@ import { FileDoc } from './FileModel';
 
 export interface DirDoc extends Document {
     owner: UserDoc;
-    childrenPath: DirDoc[];
-    parentPath: DirDoc;
+    children: DirDoc[];
+    parent: DirDoc;
     name: string;
     created: Date;
     updated: Date;
     files: FileDoc[];
 }
 
-export const PathSchema = new Schema(
+export const DirSchema = new Schema(
     {
         owner: { type: Schema.Types.ObjectId, ref: 'User' },
-        childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Directory' }],
-        parentPath: { type: Schema.Types.ObjectId, ref: 'Directory' },
+        children: [{ type: Schema.Types.ObjectId, ref: 'Directory' }],
+        parent: { type: Schema.Types.ObjectId, ref: 'Directory' },
         name: { type: String },
         files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
     },
     { timestamps: { createdAt: 'created', updatedAt: 'updated' } },
 );
 
-PathSchema.pre<DirDoc>('remove', function (next: HookNextFunction) {
-    this.populate('childrenPath', (err) => {
+DirSchema.pre<DirDoc>('remove', function (next: HookNextFunction) {
+    this.populate('children', (err) => {
         if (err) {
             next(err);
             return;
@@ -35,7 +35,7 @@ PathSchema.pre<DirDoc>('remove', function (next: HookNextFunction) {
                     return;
                 } else {
                     // Remove children path
-                    this.childrenPath.forEach(async (element: DirDoc) => {
+                    this.children.forEach(async (element: DirDoc) => {
                         try {
                             await element.remove();
                         } catch (err) {
@@ -59,4 +59,4 @@ PathSchema.pre<DirDoc>('remove', function (next: HookNextFunction) {
     });
 });
 
-export default model<DirDoc>('Directory', PathSchema);
+export default model<DirDoc>('Directory', DirSchema);

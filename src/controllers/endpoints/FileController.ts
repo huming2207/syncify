@@ -180,8 +180,8 @@ export class FileController extends BaseController {
                 if (path !== '/') {
                     const pathArr = path.split('/').splice(1);
                     for (const pathItem of pathArr) {
-                        await currPath.populate('childrenPath').execPopulate();
-                        const childPath = currPath.childrenPath.filter(
+                        await currPath.populate('children').execPopulate();
+                        const childPath = currPath.children.filter(
                             (element) => element.name === pathItem,
                         );
 
@@ -350,8 +350,8 @@ export class FileController extends BaseController {
         let currPath = user.rootPath;
         let fileName = '';
         for (const [idx, pathItem] of pathArr.entries()) {
-            await currPath.populate('childrenPath').execPopulate();
-            const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
+            await currPath.populate('children').execPopulate();
+            const childPath = currPath.children.filter((element) => element.name === pathItem);
             if (idx === pathArr.length - 1) {
                 fileName = pathItem;
                 break;

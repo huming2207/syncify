@@ -7,8 +7,8 @@ export async function traversePathTree(root: DirDoc, path: string): Promise<DirD
     const pathArr = path.split('/').splice(1);
     let currPath = root;
     for (const pathItem of pathArr) {
-        await currPath.populate('childrenPath').execPopulate();
-        const childPath = currPath.childrenPath.filter((element) => element.name === pathItem);
+        await currPath.populate('children').execPopulate();
+        const childPath = currPath.children.filter((element) => element.name === pathItem);
 
         if (childPath.length < 1) {
             throw new NotFoundError('Directory does not exist');

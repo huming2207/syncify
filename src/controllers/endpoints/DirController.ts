@@ -126,26 +126,24 @@ export class DirController extends BaseController {
         // Do a BFS here to iterate a path tree.
         // If a path name is matched, set to the next iteration. If not, then create it.
         try {
-            let parentPath = user.rootPath;
+            let parent = user.rootPath;
             for (const [idx, pathItem] of pathToCreate.entries()) {
-                await parentPath.populate('childrenPath').execPopulate();
-                const childPath = parentPath.childrenPath.filter(
-                    (element) => element.name === pathItem,
-                );
+                await parent.populate('children').execPopulate();
+                const childPath = parent.children.filter((element) => element.name === pathItem);
 
                 if (childPath.length < 1) {
                     const newPath = await Directory.create<{
                         name: string;
                         owner: UserDoc;
-                        parentPath: DirDoc;
-                    }>({ name: pathItem, owner: user, parentPath });
+                        parent: DirDoc;
+                    }>({ name: pathItem, owner: user, parent });
                     await Directory.updateOne(
-                        { _id: parentPath._id },
-                        { $push: { childrenPath: newPath } },
+                        { _id: parent._id },
+                        { $push: { children: newPath } },
                     );
-                    parentPath = newPath;
+                    parent = newPath;
                 } else {
-                    parentPath = childPath[0];
+                    parent = childPath[0];
 
                     // If there is nothing created for the last item, then this path must have been created before.
                     if (idx === pathToCreate.length - 1) {
@@ -173,7 +171,7 @@ export class DirController extends BaseController {
         await path
             .populate('owner')
             .populate('files', '_id name size type owner created updated')
-            .populate('childrenPath', '_id name owner created updated')
+            .populate('children', '_id name owner created updated')
             .execPopulate();
 
         reply.code(200).send({
@@ -187,7 +185,7 @@ export class DirController extends BaseController {
                 },
                 files: path.files,
                 name: path.name,
-                dirs: path.childrenPath,
+                dirs: path.children,
             },
         });
     };
@@ -224,19 +222,19 @@ export class DirController extends BaseController {
 
         try {
             // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
-            await origPath.populate('parentPath').execPopulate();
-            const parentPath = origPath.parentPath;
-            if (!parentPath) throw new BadRequestError('Root path cannot be moved');
-            console.log(parentPath);
+            await origPath.populate('parent').execPopulate();
+            const parent = origPath.parent;
+            if (!parent) throw new BadRequestError('Root path cannot be moved');
+            console.log(parent);
 
             // Remove orig's parent's child field
-            await Directory.updateOne(parentPath, {
-                $pull: { childrenPath: origPath._id },
+            await Directory.updateOne(parent, {
+                $pull: { children: origPath._id },
             });
 
             // Add orig to dest
-            await Directory.updateOne(destPath, { $push: { childrenPath: origPath._id } });
-            await Directory.updateOne(origPath, { parentPath: destPath });
+            await Directory.updateOne(destPath, { $push: { children: origPath._id } });
+            await Directory.updateOne(origPath, { parent: destPath });
 
             reply.code(200).send({ message: 'Directory moved', data: {} });
         } catch (err) {
