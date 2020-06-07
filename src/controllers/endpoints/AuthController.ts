@@ -2,7 +2,7 @@ import { BaseController } from '../BaseController';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
 import User, { UserDoc } from '../../models/UserModel';
-import Path from '../../models/PathModel';
+import Directory from '../../models/DirModel';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { InternalError, UnauthorisedError, BadRequestError } from '../../common/Errors';
@@ -63,7 +63,7 @@ export class AuthController extends BaseController {
                 email,
             });
 
-            const createdPath = await Path.create<{
+            const createdPath = await Directory.create<{
                 owner: UserDoc;
                 name: string;
             }>({

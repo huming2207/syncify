@@ -1,6 +1,6 @@
 import { JSONSchema7 } from 'json-schema';
 
-export const PathQuerySchema: JSONSchema7 = {
+export const DirQuerySchema: JSONSchema7 = {
     $id: '#path',
     type: 'object',
     properties: {

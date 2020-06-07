@@ -1,18 +1,18 @@
-import { PathDoc } from './PathModel';
+import { DirDoc } from './DirModel';
 import { Document, Schema, Types, model, HookNextFunction } from 'mongoose';
 
 export interface UserDoc extends Document {
     username: string;
     password: string;
     email: string;
-    rootPath: PathDoc;
+    rootPath: DirDoc;
 }
 
 export const UserSchema = new Schema({
     username: { type: String, unique: true },
     password: { type: String },
     email: { type: String, unique: true },
-    rootPath: { type: Types.ObjectId, ref: 'Path' },
+    rootPath: { type: Types.ObjectId, ref: 'Directory' },
 });
 
 UserSchema.pre<UserDoc>('find', function (next: HookNextFunction) {

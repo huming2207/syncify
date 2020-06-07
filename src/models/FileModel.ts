@@ -1,6 +1,6 @@
 import { Types, Document, Schema, model, HookNextFunction } from 'mongoose';
 import { UserDoc } from './UserModel';
-import { PathDoc } from './PathModel';
+import { DirDoc } from './DirModel';
 import { StorageService, StorageBucketName } from '../services/storage/StorageService';
 
 export interface FileDoc extends Document {
@@ -9,7 +9,7 @@ export interface FileDoc extends Document {
     type: string;
     name: string;
     owner: UserDoc;
-    path: PathDoc;
+    path: DirDoc;
     created: Date;
     updated: Date;
     storageId: Types.ObjectId;
@@ -22,7 +22,7 @@ export const FileSchema = new Schema(
         type: { type: String },
         name: { type: String },
         owner: { type: Types.ObjectId, ref: 'User' },
-        path: { type: Types.ObjectId, ref: 'Path' },
+        path: { type: Types.ObjectId, ref: 'Directory' },
         storageId: { type: Types.ObjectId },
     },
     { timestamps: { createdAt: 'created', updatedAt: 'updated' } },

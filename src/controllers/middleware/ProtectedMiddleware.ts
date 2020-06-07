@@ -3,13 +3,13 @@ import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'f
 import fastifyJWT from 'fastify-jwt';
 import { UserController } from '../endpoints/UserController';
 import { FileController } from '../endpoints/FileController';
-import { PathController } from '../endpoints/PathController';
+import { DirController } from '../endpoints/DirController';
 
 export class ProtectedMiddleware extends BaseController {
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
-        done: Function,
+        done: () => void,
     ): void => {
         // JWT middleware starts here
         instance.register(fastifyJWT, {
@@ -25,7 +25,7 @@ export class ProtectedMiddleware extends BaseController {
         // Protected API (needs valid JWT)
         instance.register(new UserController().bootstrap);
         instance.register(new FileController().bootstrap);
-        instance.register(new PathController().bootstrap);
+        instance.register(new DirController().bootstrap);
         done();
     };
 

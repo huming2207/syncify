@@ -2,10 +2,10 @@ import { UserDoc } from './UserModel';
 import { Document, Schema, model, HookNextFunction } from 'mongoose';
 import { FileDoc } from './FileModel';
 
-export interface PathDoc extends Document {
+export interface DirDoc extends Document {
     owner: UserDoc;
-    childrenPath: PathDoc[];
-    parentPath: PathDoc;
+    childrenPath: DirDoc[];
+    parentPath: DirDoc;
     name: string;
     created: Date;
     updated: Date;
@@ -15,15 +15,15 @@ export interface PathDoc extends Document {
 export const PathSchema = new Schema(
     {
         owner: { type: Schema.Types.ObjectId, ref: 'User' },
-        childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Path' }],
-        parentPath: { type: Schema.Types.ObjectId, ref: 'Path' },
+        childrenPath: [{ type: Schema.Types.ObjectId, ref: 'Directory' }],
+        parentPath: { type: Schema.Types.ObjectId, ref: 'Directory' },
         name: { type: String },
         files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
     },
     { timestamps: { createdAt: 'created', updatedAt: 'updated' } },
 );
 
-PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
+PathSchema.pre<DirDoc>('remove', function (next: HookNextFunction) {
     this.populate('childrenPath', (err) => {
         if (err) {
             next(err);
@@ -35,7 +35,7 @@ PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
                     return;
                 } else {
                     // Remove children path
-                    this.childrenPath.forEach(async (element: PathDoc) => {
+                    this.childrenPath.forEach(async (element: DirDoc) => {
                         try {
                             await element.remove();
                         } catch (err) {
@@ -59,4 +59,4 @@ PathSchema.pre<PathDoc>('remove', function (next: HookNextFunction) {
     });
 });
 
-export default model<PathDoc>('Path', PathSchema);
+export default model<DirDoc>('Directory', PathSchema);

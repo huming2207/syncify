@@ -1,6 +1,6 @@
 import { BaseController } from '../BaseController';
 import User, { UserDoc } from '../../models/UserModel';
-import Path, { PathDoc } from '../../models/PathModel';
+import Directory, { DirDoc } from '../../models/DirModel';
 import { ServerInstance, MiddlewareOptions, ServerRequest, ServerReply } from 'fastify';
 import FastifyFormBody from 'fastify-formbody';
 import {
@@ -9,14 +9,14 @@ import {
     InternalError,
     UnauthorisedError,
 } from '../../common/Errors';
-import { PathQuerySchema } from '../../common/schemas/request/PathQuerySchema';
+import { DirQuerySchema } from '../../common/schemas/request/DirQuerySchema';
 import { CopyMoveSchema } from '../../common/schemas/request/CopyMoveSchema';
 import { traversePathTree } from '../../common/TreeTraverser';
 import { SuccessResponseSchema } from '../../common/schemas/response/SuccessResponseSchema';
 import { ErrorSchema } from '../../common/schemas/response/ErrorResponseSchema';
 import { RenameSchema } from '../../common/schemas/request/RenameSchema';
 
-export class PathController extends BaseController {
+export class DirController extends BaseController {
     public bootstrap = (
         instance: ServerInstance,
         opts: MiddlewareOptions,
@@ -43,7 +43,7 @@ export class PathController extends BaseController {
             {
                 schema: {
                     description: 'Create a directory',
-                    body: PathQuerySchema,
+                    body: DirQuerySchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
@@ -103,7 +103,7 @@ export class PathController extends BaseController {
             {
                 schema: {
                     description: 'Delete a directory',
-                    body: PathQuerySchema,
+                    body: DirQuerySchema,
                     consumes: ['application/x-www-form-urlencoded'],
                     produces: ['application/json'],
                     security: [{ JWT: [] }],
@@ -134,12 +134,12 @@ export class PathController extends BaseController {
                 );
 
                 if (childPath.length < 1) {
-                    const newPath = await Path.create<{
+                    const newPath = await Directory.create<{
                         name: string;
                         owner: UserDoc;
-                        parentPath: PathDoc;
+                        parentPath: DirDoc;
                     }>({ name: pathItem, owner: user, parentPath });
-                    await Path.updateOne(
+                    await Directory.updateOne(
                         { _id: parentPath._id },
                         { $push: { childrenPath: newPath } },
                     );
@@ -205,7 +205,7 @@ export class PathController extends BaseController {
         const currPath = await traversePathTree(user.rootPath, pathStr);
 
         try {
-            await Path.updateOne(currPath, { name: newName });
+            await Directory.updateOne(currPath, { name: newName });
             reply.code(200).send({ message: 'Directory renamed', data: {} });
         } catch (err) {
             throw new InternalError('Failed to rename directory');
@@ -230,13 +230,13 @@ export class PathController extends BaseController {
             console.log(parentPath);
 
             // Remove orig's parent's child field
-            await Path.updateOne(parentPath, {
+            await Directory.updateOne(parentPath, {
                 $pull: { childrenPath: origPath._id },
             });
 
             // Add orig to dest
-            await Path.updateOne(destPath, { $push: { childrenPath: origPath._id } });
-            await Path.updateOne(origPath, { parentPath: destPath });
+            await Directory.updateOne(destPath, { $push: { childrenPath: origPath._id } });
+            await Directory.updateOne(origPath, { parentPath: destPath });
 
             reply.code(200).send({ message: 'Directory moved', data: {} });
         } catch (err) {

@@ -3,9 +3,9 @@ import { MiddlewareOptions, ServerInstance, ServerRequest, ServerReply } from 'f
 import FastifyFormBody from 'fastify-formbody';
 import FastifyMultipart from 'fastify-multipart';
 import mongodb from 'mongodb';
-import File, { FileDoc } from '../../models/FileModel';
+import File from '../../models/FileModel';
 import User, { UserDoc } from '../../models/UserModel';
-import Path, { PathDoc } from '../../models/PathModel';
+import Path, { DirDoc } from '../../models/DirModel';
 import {
     NotFoundError,
     BadRequestError,
@@ -204,7 +204,7 @@ export class FileController extends BaseController {
                     type: string;
                     name: string;
                     owner: UserDoc;
-                    path: PathDoc;
+                    path: DirDoc;
                     storageId: Types.ObjectId;
                 }>({
                     size: streamMeter.bytes,
@@ -258,7 +258,7 @@ export class FileController extends BaseController {
                 type: string;
                 name: string;
                 owner: UserDoc;
-                path: PathDoc;
+                path: DirDoc;
                 storageId: Types.ObjectId;
             }>({
                 size: file.size,

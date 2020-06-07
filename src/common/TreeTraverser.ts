@@ -1,8 +1,8 @@
-import { PathDoc } from '../models/PathModel';
+import { DirDoc } from '../models/DirModel';
 import { NotFoundError } from './Errors';
 import { FileDoc } from '../models/FileModel';
 
-export async function traversePathTree(root: PathDoc, path: string): Promise<PathDoc> {
+export async function traversePathTree(root: DirDoc, path: string): Promise<DirDoc> {
     if (path === '/') return root;
     const pathArr = path.split('/').splice(1);
     let currPath = root;
@@ -19,7 +19,7 @@ export async function traversePathTree(root: PathDoc, path: string): Promise<Pat
     return currPath;
 }
 
-export async function getFileFromDirectory(dir: PathDoc, fileName: string): Promise<FileDoc> {
+export async function getFileFromDirectory(dir: DirDoc, fileName: string): Promise<FileDoc> {
     // Load files from the directory it should be in
     await dir.populate('files').execPopulate();
 

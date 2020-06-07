@@ -1,14 +1,15 @@
 import './typings/FastifyTypes';
 import fastify from 'fastify';
+import dotenv from 'dotenv';
 import { connectToDb } from './common/Database';
 import { ProtectedMiddleware } from './controllers/middleware/ProtectedMiddleware';
 import { AuthController } from './controllers/endpoints/AuthController';
 import FastifyOas from 'fastify-oas';
 import { LoginFormSchema, RegisterFormSchema } from './common/schemas/request/UserFormSchema';
-import { PathQuerySchema } from './common/schemas/request/PathQuerySchema';
+import { DirQuerySchema } from './common/schemas/request/DirQuerySchema';
 import { ErrorHandler } from './controllers/middleware/ErrorHandler';
 
-require('dotenv').config();
+dotenv.config();
 
 const server = fastify({
     logger: {
@@ -39,7 +40,7 @@ if (process.env.SYNCIFY_DISABLE_SWAGGER !== 'true') {
                     description: 'Dev server',
                 },
             ],
-            definitions: { LoginFormSchema, RegisterFormSchema, PathQuerySchema },
+            definitions: { LoginFormSchema, RegisterFormSchema, PathQuerySchema: DirQuerySchema },
             securityDefinitions: {
                 JWT: {
                     type: 'http',
