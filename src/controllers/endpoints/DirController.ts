@@ -126,7 +126,7 @@ export class DirController extends BaseController {
         // Do a BFS here to iterate a path tree.
         // If a path name is matched, set to the next iteration. If not, then create it.
         try {
-            let parent = user.rootPath;
+            let parent = user.rootDir;
             for (const [idx, pathItem] of pathToCreate.entries()) {
                 await parent.populate('children').execPopulate();
                 const childPath = parent.children.filter((element) => element.name === pathItem);
@@ -164,7 +164,7 @@ export class DirController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathName = req.query['path'] as string;
-        const path = await traversePathTree(user.rootPath, pathName);
+        const path = await traversePathTree(user.rootDir, pathName);
 
         if (!path) throw new NotFoundError('Directory does not exist');
 
@@ -200,7 +200,7 @@ export class DirController extends BaseController {
         if (!user) throw new UnauthorisedError('Cannot load current user');
         const pathStr = req.body['item'] as string;
         const newName = req.body['name'] as string;
-        const currPath = await traversePathTree(user.rootPath, pathStr);
+        const currPath = await traversePathTree(user.rootDir, pathStr);
 
         try {
             await Directory.updateOne(currPath, { name: newName });
@@ -215,10 +215,10 @@ export class DirController extends BaseController {
         const user = await User.findById(userId);
         if (!user) throw new UnauthorisedError('Cannot load current user');
         const origPathName = req.body['orig'] as string;
-        const origPath = await traversePathTree(user.rootPath, origPathName);
+        const origPath = await traversePathTree(user.rootDir, origPathName);
 
         const destPathName = req.body['dest'] as string;
-        const destPath = await traversePathTree(user.rootPath, destPathName);
+        const destPath = await traversePathTree(user.rootDir, destPathName);
 
         try {
             // Detect original path's parent - if no parent then it can't be moved (i.e. it's root path)
@@ -249,7 +249,7 @@ export class DirController extends BaseController {
         const pathName = req.body['path'] as string;
         if (pathName === '/') throw new BadRequestError('Cannot delete root directory!');
 
-        const currPath = await traversePathTree(user.rootPath, pathName);
+        const currPath = await traversePathTree(user.rootDir, pathName);
 
         try {
             console.log(currPath);

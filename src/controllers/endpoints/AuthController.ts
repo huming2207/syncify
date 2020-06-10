@@ -74,7 +74,7 @@ export class AuthController extends BaseController {
             if (!createdUser) throw new InternalError('Failed to create user');
             if (!createdPath) throw new InternalError('Failed to create root path');
 
-            createdUser.rootPath = createdPath;
+            createdUser.rootDir = createdPath;
             await createdUser.save();
 
             reply.code(200).send({

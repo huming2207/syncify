@@ -5,23 +5,23 @@ export interface UserDoc extends Document {
     username: string;
     password: string;
     email: string;
-    rootPath: DirDoc;
+    rootDir: DirDoc;
 }
 
 export const UserSchema = new Schema({
     username: { type: String, unique: true },
     password: { type: String },
     email: { type: String, unique: true },
-    rootPath: { type: Types.ObjectId, ref: 'Directory' },
+    rootDir: { type: Types.ObjectId, ref: 'Directory' },
 });
 
 UserSchema.pre<UserDoc>('find', function (next: HookNextFunction) {
-    this.populate('rootPath');
+    this.populate('rootDir');
     next();
 });
 
 UserSchema.pre<UserDoc>('findOne', function (next: HookNextFunction) {
-    this.populate('rootPath');
+    this.populate('rootDir');
     next();
 });
 

@@ -126,7 +126,7 @@ export class FileController extends BaseController {
         const path = req.query['path'] as string;
 
         const currPath = await traversePathTree(
-            user.rootPath,
+            user.rootDir,
             path.substring(0, path.lastIndexOf('/')),
         );
 
@@ -176,7 +176,7 @@ export class FileController extends BaseController {
                 // Do a BFS here to iterate a path tree.
                 // If a path name is matched, continue; otherwise, return 404.
                 // If the path is the root path, skip the BFS.
-                let currPath = user.rootPath;
+                let currPath = user.rootDir;
                 if (path !== '/') {
                     const pathArr = path.split('/').splice(1);
                     for (const pathItem of pathArr) {
@@ -239,12 +239,12 @@ export class FileController extends BaseController {
         if (!user) throw new UnauthorisedError('Cannot load current user');
         const origPathName = req.body['orig'] as string;
         const origPath = await traversePathTree(
-            user.rootPath,
+            user.rootDir,
             origPathName.substring(0, origPathName.lastIndexOf('/')), // Get the path without the file, e.g. /home/test/foo.txt => /home/test
         );
 
         const destPathName = req.body['dest'] as string;
-        const destPath = await traversePathTree(user.rootPath, destPathName);
+        const destPath = await traversePathTree(user.rootDir, destPathName);
         const file = await getFileFromDirectory(
             origPath,
             origPathName.substring(origPathName.lastIndexOf('/') + 1),
@@ -294,11 +294,11 @@ export class FileController extends BaseController {
 
         const destPathName = req.body['dest'] as string;
 
-        const origPath = await traversePathTree(user.rootPath, origPathDir);
+        const origPath = await traversePathTree(user.rootDir, origPathDir);
         const file = await getFileFromDirectory(origPath, origPathFile);
 
         try {
-            const destPath = await traversePathTree(user.rootPath, destPathName);
+            const destPath = await traversePathTree(user.rootDir, destPathName);
             await File.updateOne(file, { path: destPath }); // Change the file's path field to the new path
             await Path.updateOne(origPath, { $pull: { files: file._id } }); // Pull out the file from the original path
             await Path.updateOne(destPath, { $push: { files: file._id } });
@@ -325,7 +325,7 @@ export class FileController extends BaseController {
         const itemName = pathStr.substring(pathStr.lastIndexOf('/') + 1);
 
         try {
-            const currPath = await traversePathTree(user.rootPath, itemDir);
+            const currPath = await traversePathTree(user.rootDir, itemDir);
             const currFile = await getFileFromDirectory(currPath, itemName);
             await File.updateOne(currFile, { name: newName });
             reply.code(200).send({ message: 'File renamed', data: {} });
@@ -347,7 +347,7 @@ export class FileController extends BaseController {
 
         // Do a BFS here to iterate a path tree.
         // If a path name is matched, continue; otherwise, return 404.
-        let currPath = user.rootPath;
+        let currPath = user.rootDir;
         let fileName = '';
         for (const [idx, pathItem] of pathArr.entries()) {
             await currPath.populate('children').execPopulate();
