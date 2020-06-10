@@ -21,6 +21,6 @@ declare module 'fastify' {
         http.IncomingMessage,
         http.ServerResponse,
         MiddlewareOptions,
-        Function
+        () => void
     >;
 }
